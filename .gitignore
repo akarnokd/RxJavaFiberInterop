@@ -24,3 +24,4 @@ bin/
 local.properties
 .idea
 *.iml
+test-output
