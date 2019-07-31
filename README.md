@@ -12,7 +12,7 @@ Library for interoperation between RxJava 3 and Project Loom's Fibers.
 
 ### create
 
-Creates a `Flowable` from a generator callback, that can emit via `FiberEmitter`, run in a Fiber backed by the `computation` scheduler
+Creates a `Flowable` from a generator callback, that can emit via `FiberEmitter`, run in a Fiber backed by the `ForkJoinPool.commonPool()` or any `Executor`/`Scheduler` provided as argument
 and suspended automatically on downstream backpressure.
 
 ```java
