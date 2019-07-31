@@ -21,6 +21,7 @@ apply plugin: 'jacoco'
 
 compileJava.options.fork = true
 compileJava.options.forkOptions.executable = "c:/work/jdk-14-loom/bin/javac.exe"
+javadoc.executable = "c:/work/jdk-14-loom/bin/javadoc.exe"
 
 group = "com.github.akarnokd"
 
