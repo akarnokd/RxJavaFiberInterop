@@ -14,33 +14,17 @@
  * limitations under the License.
  */
 
-package hu.akarnokd.rxjava3.fibers.tck;
+package hu.akarnokd.rxjava3.fibers;
 
-import java.io.IOException;
-
-import org.reactivestreams.Publisher;
 import org.testng.annotations.Test;
 
 import hu.akarnokd.rxjava3.fibers.FiberInterop;
 
 @Test
-public class FlowableCreateFiberExecutorTckTest extends BaseTck<Long> {
+public class FiberInteropTest {
 
-    @Override
-    public Publisher<Long> createPublisher(final long elements) {
-        return
-                FiberInterop.create(emitter -> {
-                    for (var i = 0L; i < elements; i++) {
-                        emitter.emit(i);
-                    }
-                });
-    }
-
-
-    @Override
-    public Publisher<Long> createFailedPublisher() {
-        return FiberInterop.<Long>create(emitter -> {
-            throw new IOException();
-        });
+    @Test
+    public void checkClass() {
+        TestHelper.checkUtilityClass(FiberInterop.class);
     }
 }

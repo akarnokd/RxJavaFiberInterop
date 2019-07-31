@@ -16,13 +16,12 @@
 
 package hu.akarnokd.rxjava3.fibers;
 
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.Executor;
 
-import org.reactivestreams.*;
+import org.reactivestreams.Subscriber;
 
+import hu.akarnokd.rxjava3.fibers.FlowableCreateFiberScheduler.CreateFiberSubscription;
 import io.reactivex.Flowable;
-import io.reactivex.internal.util.BackpressureHelper;
 
 /**
  * Runs a generator callback on a Fiber backed by a Worker of the given scheduler
@@ -43,106 +42,24 @@ final class FlowableCreateFiberExecutor<T> extends Flowable<T> {
 
     @Override
     protected void subscribeActual(Subscriber<? super T> s) {
-        var parent = new CreateFiberSubscription<>(s, generator);
+        var parent = new ExecutorCreateFiberSubscription<>(s, generator);
         s.onSubscribe(parent);
 
         var fiber = FiberScope.background().schedule(executor, parent);
         parent.setFiber(fiber);
     }
 
-    static final class CreateFiberSubscription<T> extends AtomicLong implements Subscription, Callable<Void>, FiberEmitter<T> {
 
-        private static final long serialVersionUID = -6959205135542203083L;
+    static final class ExecutorCreateFiberSubscription<T> extends CreateFiberSubscription<T> {
+        private static final long serialVersionUID = -8552685969992500057L;
 
-        final Subscriber<? super T> downstream;
-
-        final FiberGenerator<T> generator;
-
-        final AtomicReference<Object> fiber;
-
-        final ResumableFiber consumerReady;
-
-        volatile Throwable stop;
-
-        static final Throwable STOP = new Throwable("Downstream cancelled");
-
-        long produced;
-
-        CreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator) {
-            this.downstream = downstream;
-            this.generator = generator;
-            this.fiber = new AtomicReference<>();
-            this.consumerReady = new ResumableFiber();
+        ExecutorCreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator) {
+            super(downstream, generator);
         }
 
         @Override
-        public Void call() {
-            try {
-                try {
-                    generator.generate(this);
-                } catch (Throwable ex) {
-                    if (ex != STOP) {
-                        downstream.onError(ex);
-                    }
-                    return null;
-                }
-                var s = stop;
-                if (s != STOP) {
-                    if (s == null) {
-                        downstream.onComplete();
-                    } else {
-                        downstream.onError(s);
-                    }
-                }
-            } finally {
-                fiber.set(this);
-            }
-            return null;
-        }
-
-        @Override
-        public void request(long n) {
-            if (BackpressureHelper.add(this, n) == 0L) {
-                consumerReady.resume();
-            }
-        }
-
-        @Override
-        public void cancel() {
-            stop = STOP;
-            var f = fiber.getAndSet(this);
-            if (f != null && f != this) {
-                ((Fiber<?>)f).cancel();
-            }
-            request(1);
-        }
-
-        @Override
-        public void emit(T item) throws Throwable {
-            var p = produced;
-            if (get() == p && stop == null) {
-                consumerReady.clear();
-                p = BackpressureHelper.produced(this, p);
-                if (p == 0L && stop == null) {
-                    consumerReady.await();
-                }
-            }
-
-            var s = stop;
-            if (s == null) {
-                downstream.onNext(item);
-                produced = p + 1;
-            } else {
-                throw s;
-            }
-        }
-
-        public void setFiber(Fiber<?> fiber) {
-            if (this.fiber.get() != null || this.fiber.compareAndSet(null, fiber)) {
-                if (this.fiber.get() != this) {
-                    fiber.cancel();
-                }
-            }
+        protected void cleanup() {
         }
     }
+
 }

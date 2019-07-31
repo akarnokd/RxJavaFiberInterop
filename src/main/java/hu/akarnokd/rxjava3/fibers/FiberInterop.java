@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.concurrent.*;
 
 import io.reactivex.*;
+import io.reactivex.internal.functions.ObjectHelper;
 import io.reactivex.plugins.RxJavaPlugins;
 
 /**
@@ -48,5 +49,35 @@ public final class FiberInterop {
         Objects.requireNonNull(generator, "generator is null");
         Objects.requireNonNull(executor, "executor is null");
         return RxJavaPlugins.onAssembly(new FlowableCreateFiberExecutor<>(generator, executor));
+    }
+
+    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, Scheduler scheduler) {
+        return transform(transformer, scheduler, Flowable.bufferSize());
+    }
+
+    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, Scheduler scheduler, int prefetch) {
+        Objects.requireNonNull(transformer, "transformer is null");
+        Objects.requireNonNull(scheduler, "scheduler is null");
+        ObjectHelper.verifyPositive(prefetch, "prefetch");
+        return new FlowableTransformFiberScheduler<>(null, transformer, scheduler, prefetch);
+    }
+
+    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer) {
+        return transform(transformer, ForkJoinPool.commonPool(), Flowable.bufferSize());
+    }
+
+    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, int prefetch) {
+        return transform(transformer, ForkJoinPool.commonPool(), prefetch);
+    }
+
+    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, Executor scheduler) {
+        return transform(transformer, scheduler, Flowable.bufferSize());
+    }
+
+    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, Executor scheduler, int prefetch) {
+        Objects.requireNonNull(transformer, "transformer is null");
+        Objects.requireNonNull(scheduler, "scheduler is null");
+        ObjectHelper.verifyPositive(prefetch, "prefetch");
+        return new FlowableTransformFiberExecutor<>(null, transformer, scheduler, prefetch);
     }
 }

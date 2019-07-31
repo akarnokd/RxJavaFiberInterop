@@ -22,25 +22,29 @@ import org.reactivestreams.Publisher;
 import org.testng.annotations.Test;
 
 import hu.akarnokd.rxjava3.fibers.FiberInterop;
+import io.reactivex.Flowable;
 
 @Test
-public class FlowableCreateFiberExecutorTckTest extends BaseTck<Long> {
+public class FlowableTransformFiberExecutor2TckTest extends BaseTck<Long> {
 
     @Override
     public Publisher<Long> createPublisher(final long elements) {
-        return
-                FiberInterop.create(emitter -> {
-                    for (var i = 0L; i < elements; i++) {
-                        emitter.emit(i);
+        var half = elements >> 1;
+        var rest = elements - half;
+        return Flowable.rangeLong(0, rest)
+                .compose(FiberInterop.transform((v, emitter) -> {
+                    emitter.emit(v);
+                    if (v < rest - 1 || half == rest) {
+                        emitter.emit(v);
                     }
-                });
+                }, 2));
     }
-
 
     @Override
     public Publisher<Long> createFailedPublisher() {
-        return FiberInterop.<Long>create(emitter -> {
-            throw new IOException();
-        });
+        return Flowable.just(1)
+                .compose(FiberInterop.transform((v, emitter) -> {
+                    throw new IOException();
+                }, 2));
     }
 }

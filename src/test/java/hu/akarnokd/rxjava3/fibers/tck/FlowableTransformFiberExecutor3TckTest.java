@@ -17,30 +17,34 @@
 package hu.akarnokd.rxjava3.fibers.tck;
 
 import java.io.IOException;
+import java.util.concurrent.ForkJoinPool;
 
 import org.reactivestreams.Publisher;
 import org.testng.annotations.Test;
 
 import hu.akarnokd.rxjava3.fibers.FiberInterop;
+import io.reactivex.Flowable;
 
 @Test
-public class FlowableCreateFiberExecutorTckTest extends BaseTck<Long> {
+public class FlowableTransformFiberExecutor3TckTest extends BaseTck<Long> {
 
     @Override
     public Publisher<Long> createPublisher(final long elements) {
-        return
-                FiberInterop.create(emitter -> {
-                    for (var i = 0L; i < elements; i++) {
-                        emitter.emit(i);
+        var half = elements >> 1;
+        var rest = elements - half;
+        return Flowable.rangeLong(0, rest)
+                .compose(FiberInterop.transform((v, emitter) -> {
+                    emitter.emit(v);
+                    if (v < rest - 1 || half == rest) {
+                        emitter.emit(v);
                     }
-                });
+                }, ForkJoinPool.commonPool()));
     }
-
 
     @Override
     public Publisher<Long> createFailedPublisher() {
-        return FiberInterop.<Long>create(emitter -> {
-            throw new IOException();
-        });
+        return Flowable.error(new IOException())
+                .compose(FiberInterop.transform((v, emitter) -> {
+                }, ForkJoinPool.commonPool()));
     }
 }

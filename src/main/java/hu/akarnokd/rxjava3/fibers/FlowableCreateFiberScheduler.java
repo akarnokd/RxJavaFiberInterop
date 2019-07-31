@@ -16,6 +16,7 @@
 
 package hu.akarnokd.rxjava3.fibers;
 
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.*;
 
@@ -45,20 +46,34 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
     @Override
     protected void subscribeActual(Subscriber<? super T> s) {
         var worker = scheduler.createWorker();
-        var parent = new CreateFiberSubscription<>(s, worker, generator);
+        var parent = new WorkerCreateFiberSubscription<>(s, generator, worker);
         s.onSubscribe(parent);
 
         var fiber = FiberScope.background().schedule(worker::schedule, parent);
         parent.setFiber(fiber);
     }
 
-    static final class CreateFiberSubscription<T> extends AtomicLong implements Subscription, Callable<Void>, FiberEmitter<T> {
+    static final class WorkerCreateFiberSubscription<T> extends CreateFiberSubscription<T> {
+        private static final long serialVersionUID = -8552685969992500057L;
+
+        final Worker worker;
+
+        WorkerCreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator, Worker worker) {
+            super(downstream, generator);
+            this.worker = worker;
+        }
+
+        @Override
+        protected void cleanup() {
+            worker.dispose();
+        }
+    }
+
+    static abstract class CreateFiberSubscription<T> extends AtomicLong implements Subscription, Callable<Void>, FiberEmitter<T> {
 
         private static final long serialVersionUID = -6959205135542203083L;
 
         final Subscriber<? super T> downstream;
-
-        final Worker worker;
 
         final FiberGenerator<T> generator;
 
@@ -66,19 +81,20 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
 
         final ResumableFiber consumerReady;
 
-        volatile Throwable stop;
+        volatile boolean cancelled;
 
         static final Throwable STOP = new Throwable("Downstream cancelled");
 
         long produced;
 
-        CreateFiberSubscription(Subscriber<? super T> downstream, Worker worker, FiberGenerator<T> generator) {
+        CreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator) {
             this.downstream = downstream;
-            this.worker = worker;
             this.generator = generator;
             this.fiber = new AtomicReference<>();
             this.consumerReady = new ResumableFiber();
         }
+
+        protected abstract void cleanup();
 
         @Override
         public Void call() {
@@ -86,22 +102,17 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
                 try {
                     generator.generate(this);
                 } catch (Throwable ex) {
-                    if (ex != STOP) {
+                    if (ex != STOP && !cancelled) {
                         downstream.onError(ex);
                     }
                     return null;
                 }
-                var s = stop;
-                if (s != STOP) {
-                    if (s == null) {
-                        downstream.onComplete();
-                    } else {
-                        downstream.onError(s);
-                    }
+                if (!cancelled) {
+                    downstream.onComplete();
                 }
             } finally {
                 fiber.set(this);
-                worker.dispose();
+                cleanup();
             }
             return null;
         }
@@ -115,7 +126,7 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
 
         @Override
         public void cancel() {
-            stop = STOP;
+            cancelled = true;
             var f = fiber.getAndSet(this);
             if (f != null && f != this) {
                 ((Fiber<?>)f).cancel();
@@ -125,21 +136,21 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
 
         @Override
         public void emit(T item) throws Throwable {
+            Objects.requireNonNull(item, "item is null");
             var p = produced;
-            if (get() == p && stop == null) {
+            if (get() == p && !cancelled) {
                 consumerReady.clear();
                 p = BackpressureHelper.produced(this, p);
-                if (p == 0L && stop == null) {
+                if (p == 0L && !cancelled) {
                     consumerReady.await();
                 }
             }
 
-            var s = stop;
-            if (s == null) {
+            if (!cancelled) {
                 downstream.onNext(item);
                 produced = p + 1;
             } else {
-                throw s;
+                throw STOP;
             }
         }
 

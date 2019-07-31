@@ -15,7 +15,7 @@ buildscript {
 }
 
 apply plugin: 'java'
-/*
+
 apply plugin: 'jacoco'
 jacoco {
     toolVersion = "0.8.4"
@@ -31,7 +31,7 @@ jacocoTestReport {
 build.dependsOn jacocoTestReport
 
 check.dependsOn jacocoTestReport
-*/
+
 
 // Unfortunately, Gradle doesn't support running with JDK 13+ and Loom is a JDK 14 preview
 
@@ -91,6 +91,7 @@ test {
         exceptionFormat="full"
         //    showStandardStreams = true
     }
+    jacoco.includes = ["hu/akarnokd/**"]
 }
 
 apply plugin: "com.github.hierynomus.license"
@@ -107,6 +108,7 @@ license {
 task testng(type: Test) { 
      useTestNG()
      executable = testExecutable
+     jacoco.includes = ["hu/akarnokd/**"]
      testLogging  {
         events=["skipped", "failed"]
         exceptionFormat="full"
