@@ -43,4 +43,13 @@ public class FlowableCreateFiberSchedulerTckTest extends BaseTck<Long> {
             throw new IOException();
         }, Schedulers.computation());
     }
+
+    /*
+    @Test
+    public void required_spec312_cancelMustMakeThePublisherToEventuallyStopSignalingLoop() throws Throwable {
+        for (int i = 0; i < 1000; i++) {
+            required_spec312_cancelMustMakeThePublisherToEventuallyStopSignaling();
+        }
+    }
+    */
 }

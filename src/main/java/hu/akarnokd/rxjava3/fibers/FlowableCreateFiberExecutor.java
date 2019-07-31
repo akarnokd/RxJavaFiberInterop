@@ -110,6 +110,10 @@ final class FlowableCreateFiberExecutor<T> extends Flowable<T> {
         @Override
         public void cancel() {
             stop = STOP;
+            var f = fiber.getAndSet(this);
+            if (f != null && f != this) {
+                ((Fiber<?>)f).cancel();
+            }
             request(1);
         }
 
@@ -118,7 +122,7 @@ final class FlowableCreateFiberExecutor<T> extends Flowable<T> {
             var p = produced;
             if (get() == p && stop == null) {
                 p = BackpressureHelper.produced(this, p);
-                if (p == 0 && stop == null) {
+                while (get() == p && stop == null) {
                     consumerReady.await();
                 }
             }

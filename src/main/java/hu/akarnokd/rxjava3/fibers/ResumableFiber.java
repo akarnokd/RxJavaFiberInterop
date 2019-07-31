@@ -29,7 +29,7 @@ public class ResumableFiber extends AtomicReference<Object> {
     /**
      * Indicates the await can resume without parking the fiber.
      */
-    static final Object READY = new Object();
+    static final Object READY = "Ready";
 
     /**
      * Wait for a resumption by a {@link #resume()} call.
@@ -62,6 +62,13 @@ public class ResumableFiber extends AtomicReference<Object> {
             }
         }
         // clear the resume indicator so that the next await call will park without a resume()
+        clear();
+    }
+
+    /**
+     * Clears any resumption/ready object from this ResumableFiber.
+     */
+    public final void clear() {
         getAndSet(null);
     }
 
