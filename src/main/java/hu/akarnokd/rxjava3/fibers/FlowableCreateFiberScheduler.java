@@ -127,8 +127,9 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
         public void emit(T item) throws Throwable {
             var p = produced;
             if (get() == p && stop == null) {
+                consumerReady.clear();
                 p = BackpressureHelper.produced(this, p);
-                while (get() == p && stop == null) {
+                if (p == 0L && stop == null) {
                     consumerReady.await();
                 }
             }

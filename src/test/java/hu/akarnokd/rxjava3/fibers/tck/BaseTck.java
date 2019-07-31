@@ -34,7 +34,7 @@ import io.reactivex.Flowable;
 public abstract class BaseTck<T> extends PublisherVerification<T> {
 
     public BaseTck() {
-        this(150);
+        this(100);
     }
 
     public BaseTck(long timeout) {
