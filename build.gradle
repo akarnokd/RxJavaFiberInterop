@@ -1,0 +1,88 @@
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "biz.aQute.bnd:biz.aQute.bnd.gradle:4.2.0"
+        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.8.0'
+        classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0"
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'jacoco'
+
+// Unfortunately, Gradle doesn't support running with JDK 13+ and Loom is a JDK 14 preview
+
+compileJava.options.fork = true
+compileJava.options.forkOptions.executable = "c:/work/jdk-14-loom/bin/javac.exe"
+
+group = "com.github.akarnokd"
+
+sourceCompatibility = 14
+targetCompatibility = 14
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "io.reactivex.rxjava3:rxjava:3.0.0-RC1"
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.reactivestreams:reactive-streams-tck:1.0.2"
+    testImplementation "org.testng:testng:6.13"
+    testImplementation "com.beust:jcommander:1.72"
+}
+
+jacoco {
+    toolVersion = "0.8.4"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+apply plugin: 'maven'
+
+apply plugin: 'biz.aQute.bnd.builder'
+
+jar {
+    bnd ('Bundle-Name': 'rxjava-fiber-interop',
+            'Bundle-Vendor': 'akarnokd',
+            'Bundle-Description': 'Library to interoperate between RxJava 3 and Fibers',
+            'Import-Package': '!org.junit,!junit.framework,!org.mockito.*,*',
+            'Bundle-DocURL': 'https://github.com/akarnokd/RxJavaFiberInterop')
+}
+
+apply plugin: "com.vanniktech.maven.publish"
+
+test {
+    maxHeapSize = "1g"
+    testLogging  {
+        events "started", "failed" // "skipped", "passed"
+        exceptionFormat="full"
+        //    showStandardStreams = true
+    }
+}
+
+build.dependsOn jacocoTestReport
+
+check.dependsOn jacocoTestReport
+
+apply plugin: "com.github.hierynomus.license"
+
+license {
+    header rootProject.file('HEADER')
+    mapping('kt', 'SLASHSTAR_STYLE')
+    skipExistingHeaders true
+    ignoreFailures true
+    excludes(["**/*.md", "**/*.txt"])
+}
