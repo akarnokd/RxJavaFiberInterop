@@ -58,7 +58,8 @@ if (System.getenv("CI") != null) {
     compileJava.options.fork = true
     compileJava.options.forkOptions.executable = "./jdk-14/bin/javac"
     javadoc.executable = "./jdk-14/bin/javadoc"
-    test.executable = "./jdk-14/bin/java"
+    test.executable = project.file(".").absolutePath + "/jdk-14/bin/java"
+    println(test.executable)
 } else {
     println("Overriding JDK on local machine");
     
