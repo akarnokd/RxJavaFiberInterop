@@ -16,13 +16,15 @@
 
 package hu.akarnokd.rxjava3.fibers.tck;
 
+import java.io.IOException;
+
 import org.reactivestreams.Publisher;
 import org.testng.annotations.Test;
 
 import hu.akarnokd.rxjava3.fibers.FiberInterop;
 
 @Test
-public class FlowableCreateFiberTckTest extends BaseTck<Long> {
+public class FlowableCreateFiberExecutorTckTest extends BaseTck<Long> {
 
     @Override
     public Publisher<Long> createPublisher(final long elements) {
@@ -32,6 +34,14 @@ public class FlowableCreateFiberTckTest extends BaseTck<Long> {
                         emitter.emit(i);
                     }
                 });
+    }
+
+
+    @Override
+    public Publisher<Long> createFailedPublisher() {
+        return FiberInterop.<Long>create(emitter -> {
+            throw new IOException();
+        });
     }
 
 }

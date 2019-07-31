@@ -17,10 +17,10 @@
 package hu.akarnokd.rxjava3.fibers;
 
 import java.util.Objects;
+import java.util.concurrent.*;
 
 import io.reactivex.*;
 import io.reactivex.plugins.RxJavaPlugins;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Sources, transformers and consumers working with fiber-based suspendable methods.
@@ -35,12 +35,18 @@ public final class FiberInterop {
     }
 
     public static <T> Flowable<T> create(FiberGenerator<T> generator) {
-        return create(generator, Schedulers.computation());
+        return create(generator, ForkJoinPool.commonPool());
     }
 
     public static <T> Flowable<T> create(FiberGenerator<T> generator, Scheduler scheduler) {
         Objects.requireNonNull(generator, "generator is null");
         Objects.requireNonNull(scheduler, "scheduler is null");
-        return RxJavaPlugins.onAssembly(new FlowableCreateFiber<>(generator, scheduler));
+        return RxJavaPlugins.onAssembly(new FlowableCreateFiberScheduler<>(generator, scheduler));
+    }
+
+    public static <T> Flowable<T> create(FiberGenerator<T> generator, Executor executor) {
+        Objects.requireNonNull(generator, "generator is null");
+        Objects.requireNonNull(executor, "executor is null");
+        return RxJavaPlugins.onAssembly(new FlowableCreateFiberExecutor<>(generator, executor));
     }
 }

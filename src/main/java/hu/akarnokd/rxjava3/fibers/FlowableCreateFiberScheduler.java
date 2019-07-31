@@ -31,13 +31,13 @@ import io.reactivex.internal.util.BackpressureHelper;
  *
  * @param <T> the element type of the flow
  */
-final class FlowableCreateFiber<T> extends Flowable<T> {
+final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
 
     final FiberGenerator<T> generator;
 
     final Scheduler scheduler;
 
-    FlowableCreateFiber(FiberGenerator<T> generator, Scheduler scheduler) {
+    FlowableCreateFiberScheduler(FiberGenerator<T> generator, Scheduler scheduler) {
         this.generator = generator;
         this.scheduler = scheduler;
     }
@@ -45,7 +45,7 @@ final class FlowableCreateFiber<T> extends Flowable<T> {
     @Override
     protected void subscribeActual(Subscriber<? super T> s) {
         var worker = scheduler.createWorker();
-        var parent = new CreateFiberSubscription<T>(s, worker, generator);
+        var parent = new CreateFiberSubscription<>(s, worker, generator);
         s.onSubscribe(parent);
 
         var fiber = FiberScope.background().schedule(worker::schedule, parent);
@@ -101,6 +101,7 @@ final class FlowableCreateFiber<T> extends Flowable<T> {
                 }
             } finally {
                 fiber.set(this);
+                worker.dispose();
             }
             return null;
         }
