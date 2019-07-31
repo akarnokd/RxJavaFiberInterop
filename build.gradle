@@ -15,18 +15,30 @@ buildscript {
 }
 
 apply plugin: 'java'
+/*
 apply plugin: 'jacoco'
+jacoco {
+    toolVersion = "0.8.4"
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+}
+
+build.dependsOn jacocoTestReport
+
+check.dependsOn jacocoTestReport
+*/
 
 // Unfortunately, Gradle doesn't support running with JDK 13+ and Loom is a JDK 14 preview
 
-compileJava.options.fork = true
-compileJava.options.forkOptions.executable = "c:/work/jdk-14-loom/bin/javac.exe"
-javadoc.executable = "c:/work/jdk-14-loom/bin/javadoc.exe"
-
 group = "com.github.akarnokd"
 
-sourceCompatibility = 14
-targetCompatibility = 14
+sourceCompatibility = 11
+targetCompatibility = 11
 
 repositories {
     mavenCentral()
@@ -40,16 +52,22 @@ dependencies {
     testImplementation "com.beust:jcommander:1.72"
 }
 
-jacoco {
-    toolVersion = "0.8.4"
+if (System.getenv("CI") != null) {
+    println("Overriding JDK on CI");
+    
+    compileJava.options.fork = true
+    compileJava.options.forkOptions.executable = "./jdk-14/bin/javac"
+    javadoc.executable = "./jdk-14/bin/javadoc"
+    test.executable = "./jdk-14/bin/java"
+} else {
+    println("Overriding JDK on local machine");
+    
+    compileJava.options.fork = true
+    compileJava.options.forkOptions.executable = "c:/work/jdk-14-loom/bin/javac.exe"
+    javadoc.executable = "c:/work/jdk-14-loom/bin/javadoc.exe"
+    test.executable = "c:/work/jdk-14-loom/bin/java.exe"
 }
-
-jacocoTestReport {
-    reports {
-        xml.enabled = true
-        html.enabled = true
-    }
-}
+def testExecutable = test.executable
 
 apply plugin: 'maven'
 
@@ -74,10 +92,6 @@ test {
     }
 }
 
-build.dependsOn jacocoTestReport
-
-check.dependsOn jacocoTestReport
-
 apply plugin: "com.github.hierynomus.license"
 
 license {
@@ -87,3 +101,25 @@ license {
     ignoreFailures true
     excludes(["**/*.md", "**/*.txt"])
 }
+
+
+task testng(type: Test) { 
+     useTestNG()
+     executable = testExecutable
+     testLogging  {
+        events=["skipped", "failed"]
+        exceptionFormat="full"
+
+        debug.events = ["skipped", "failed"]
+        debug.exceptionFormat="full"
+
+        info.events = ["failed", "skipped"]
+        info.exceptionFormat="full"
+        
+        warn.events = ["failed", "skipped"]
+        warn.exceptionFormat="full"
+     }
+} 
+
+check.dependsOn testng
+
