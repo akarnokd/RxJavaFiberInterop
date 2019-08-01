@@ -49,8 +49,8 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
         var parent = new WorkerCreateFiberSubscription<>(s, generator, worker);
         s.onSubscribe(parent);
 
-        var fiber = FiberScope.background().schedule(worker::schedule, parent);
-        parent.setFiber(fiber);
+        // Ignoring the Fiber because it can lead to awkward interruptions if cancelled
+        FiberScope.background().schedule(worker::schedule, parent);
     }
 
     static final class WorkerCreateFiberSubscription<T> extends CreateFiberSubscription<T> {
@@ -77,8 +77,6 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
 
         final FiberGenerator<T> generator;
 
-        final AtomicReference<Object> fiber;
-
         final ResumableFiber consumerReady;
 
         volatile boolean cancelled;
@@ -90,7 +88,6 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
         CreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator) {
             this.downstream = downstream;
             this.generator = generator;
-            this.fiber = new AtomicReference<>();
             this.consumerReady = new ResumableFiber();
         }
 
@@ -111,7 +108,6 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
                     downstream.onComplete();
                 }
             } finally {
-                fiber.set(this);
                 cleanup();
             }
             return null;
@@ -126,10 +122,6 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
         @Override
         public void cancel() {
             cancelled = true;
-            var f = fiber.getAndSet(this);
-            if (f != null && f != this) {
-                ((Fiber<?>)f).cancel();
-            }
             request(1);
         }
 
@@ -147,14 +139,6 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
 
             downstream.onNext(item);
             produced = p + 1;
-        }
-
-        public void setFiber(Fiber<?> fiber) {
-            if (this.fiber.get() != null || this.fiber.compareAndSet(null, fiber)) {
-                if (this.fiber.get() != this) {
-                    fiber.cancel();
-                }
-            }
         }
     }
 }

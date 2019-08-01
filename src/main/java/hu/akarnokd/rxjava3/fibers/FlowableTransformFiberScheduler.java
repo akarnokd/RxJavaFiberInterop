@@ -56,7 +56,8 @@ implements FlowableTransformer<T, R> {
         var worker = scheduler.createWorker();
         var parent = new WorkerTransformFiberSubscriber<>(s, transformer, worker, prefetch);
         source.subscribe(parent);
-        parent.setFiber(FiberScope.background().schedule(worker::schedule, parent));
+        // Ignoring the Fiber because it can lead to awkward interruptions if cancelled
+        FiberScope.background().schedule(worker::schedule, parent);
     }
 
     static final class WorkerTransformFiberSubscriber<T, R> extends TransformFiberSubscriber<T, R> {
@@ -97,8 +98,6 @@ implements FlowableTransformer<T, R> {
 
         final SpscArrayQueue<T> queue;
 
-        final AtomicReference<Object> fiber;
-
         Subscription upstream;
 
         volatile boolean done;
@@ -120,7 +119,6 @@ implements FlowableTransformer<T, R> {
             this.producerReady = new ResumableFiber();
             this.consumerReady = new ResumableFiber();
             this.queue = new SpscArrayQueue<>(prefetch);
-            this.fiber = new AtomicReference<>();
         }
 
         @Override
@@ -179,10 +177,6 @@ implements FlowableTransformer<T, R> {
         @Override
         public void cancel() {
             cancelled = true;
-            var f = fiber.getAndSet(this);
-            if (f != null && f != this) {
-                ((Fiber<?>)f).cancel();
-            }
             // cleanup(); don't kill the worker
 
             producerReady.resume();
@@ -238,18 +232,9 @@ implements FlowableTransformer<T, R> {
                 }
             } finally {
                 queue.clear();
-                fiber.getAndSet(this);
                 cleanup();
             }
             return null;
-        }
-
-        public void setFiber(Fiber<?> fiber) {
-            if (this.fiber.get() != null || this.fiber.compareAndSet(null, fiber)) {
-                if (this.fiber.get() != this) {
-                    fiber.cancel();
-                }
-            }
         }
 
         protected abstract void cleanup();
