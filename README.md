@@ -8,7 +8,7 @@ Library for interoperation between RxJava 3 and Project Loom's Fibers.
 ```groovy
 
 dependencies {
-    implementation "com.github.akarnokd:rxjava3-fiber-interop:0.0.1"
+    implementation "com.github.akarnokd:rxjava3-fiber-interop:0.0.2"
 }
 ```
 
