@@ -16,9 +16,9 @@
 
 package hu.akarnokd.rxjava3.fibers;
 
-import org.testng.annotations.Test;
+import java.util.concurrent.TimeUnit;
 
-import hu.akarnokd.rxjava3.fibers.FiberInterop;
+import org.testng.annotations.Test;
 
 @Test
 public class FiberInteropTest {
@@ -26,5 +26,15 @@ public class FiberInteropTest {
     @Test
     public void checkClass() {
         TestHelper.checkUtilityClass(FiberInterop.class);
+    }
+
+    @Test
+    public void checkIsInsideFiber() {
+        FiberInterop.create(emitter -> {
+            emitter.emit(Fiber.current().isPresent());
+        })
+        .test()
+        .awaitDone(5, TimeUnit.SECONDS)
+        .assertResult(true);
     }
 }
