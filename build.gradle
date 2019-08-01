@@ -21,13 +21,6 @@ jacoco {
     toolVersion = "0.8.4"
 }
 
-jacocoTestReport {
-    reports {
-        xml.enabled = true
-        html.enabled = true
-    }
-}
-
 build.dependsOn jacocoTestReport
 
 check.dependsOn jacocoTestReport
@@ -97,30 +90,19 @@ apply plugin: "com.vanniktech.maven.publish"
 test {
     maxHeapSize = "1g"
     testLogging  {
-        events "started", "failed" // "skipped", "passed"
+        events "started", "failed", "standard_error" // "skipped", "passed"
         exceptionFormat="full"
         //    showStandardStreams = true
     }
-    jacoco.includes = ["hu/akarnokd/**"]
+    jacoco.includes = ["**/hu/akarnokd/**"]
 }
-
-apply plugin: "com.github.hierynomus.license"
-
-license {
-    header rootProject.file('HEADER')
-    mapping('kt', 'SLASHSTAR_STYLE')
-    skipExistingHeaders true
-    ignoreFailures true
-    excludes(["**/*.md", "**/*.txt"])
-}
-
 
 task testng(type: Test) { 
      useTestNG()
      executable = testExecutable
-     jacoco.includes = ["hu/akarnokd/**"]
+     jacoco.includes = ["**/hu/akarnokd/**"]
      testLogging  {
-        events=["skipped", "failed"]
+        events=["skipped", "failed", "standard_error"]
         exceptionFormat="full"
 
         debug.events = ["skipped", "failed"]
@@ -134,5 +116,25 @@ task testng(type: Test) {
      }
 } 
 
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+    executionData testng
+}
+
 check.dependsOn testng
 
+jacocoTestReport.dependsOn test
+jacocoTestReport.dependsOn testng
+
+apply plugin: "com.github.hierynomus.license"
+
+license {
+    header rootProject.file('HEADER')
+    skipExistingHeaders true
+    ignoreFailures true
+    excludes(["**/*.md", "**/*.txt"])
+}

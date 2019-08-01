@@ -37,4 +37,14 @@ public class FiberInteropTest {
         .awaitDone(5, TimeUnit.SECONDS)
         .assertResult(true);
     }
+
+    @org.junit.Test
+    public void checkIsInsideFiberJunit() {
+        FiberInterop.create(emitter -> {
+            emitter.emit(Fiber.current().isPresent());
+        })
+        .test()
+        .awaitDone(5, TimeUnit.SECONDS)
+        .assertResult(true);
+    }
 }
