@@ -79,11 +79,18 @@ public final class TestHelper {
         }
         try {
             if (!cdl.await(1, TimeUnit.SECONDS)) {
-                var ex = new ObstructionException("Obstruction/Timeout detected!");
+                int cnt = 0;
+                for (var e : Thread.getAllStackTraces().entrySet()) {
+                    if (e.getKey().getName().contains("Computation")) {
+                        cnt++;
+                    }
+                }
+
+                var ex = new ObstructionException("Obstruction/Timeout detected! ncpu = " + ncpu + ", computation workers = " + cnt);
 
                 for (var e : Thread.getAllStackTraces().entrySet()) {
                     if (e.getKey().getName().contains("Computation")) {
-                        ex.addSuppressed(new Exception() {
+                        ex.addSuppressed(new Exception(e.getKey().getName()) {
                             private static final long serialVersionUID = 8885288151092764756L;
 
                             @Override
