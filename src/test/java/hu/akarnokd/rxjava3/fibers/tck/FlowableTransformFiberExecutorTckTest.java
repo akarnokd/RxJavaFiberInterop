@@ -60,6 +60,7 @@ public class FlowableTransformFiberExecutorTckTest extends BaseTck<Long> {
         .doOnSubscribe(s -> log.offer("Range subscribed to"))
         .subscribeOn(Schedulers.computation())
         .doOnRequest(v -> log.offer("Map requested: " + v))
+        .doOnSubscribe(s -> log.offer("subscribeOn subscribed to"))
         .map(v -> {
             log.offer("Map: " + v);
             log.offer("Map interrupted? " + Thread.interrupted());
