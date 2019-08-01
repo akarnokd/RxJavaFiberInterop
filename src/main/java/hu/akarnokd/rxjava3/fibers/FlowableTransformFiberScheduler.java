@@ -78,7 +78,7 @@ implements FlowableTransformer<T, R> {
         }
     }
 
-    static abstract class TransformFiberSubscriber<T, R> extends AtomicLong
+    abstract static class TransformFiberSubscriber<T, R> extends AtomicLong
     implements FlowableSubscriber<T>, Subscription, FiberEmitter<R>, Callable<Void> {
 
         private static final long serialVersionUID = -4702456711290258571L;

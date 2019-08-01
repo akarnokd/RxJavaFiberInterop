@@ -69,7 +69,7 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
         }
     }
 
-    static abstract class CreateFiberSubscription<T> extends AtomicLong implements Subscription, Callable<Void>, FiberEmitter<T> {
+    abstract static class CreateFiberSubscription<T> extends AtomicLong implements Subscription, Callable<Void>, FiberEmitter<T> {
 
         private static final long serialVersionUID = -6959205135542203083L;
 
@@ -119,9 +119,8 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
 
         @Override
         public void request(long n) {
-            if (BackpressureHelper.add(this, n) == 0L) {
-                consumerReady.resume();
-            }
+            BackpressureHelper.add(this, n);
+            consumerReady.resume();
         }
 
         @Override
@@ -138,20 +137,16 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
         public void emit(T item) throws Throwable {
             Objects.requireNonNull(item, "item is null");
             var p = produced;
-            if (get() == p && !cancelled) {
-                consumerReady.clear();
-                p = BackpressureHelper.produced(this, p);
-                if (p == 0L && !cancelled) {
-                    consumerReady.await();
-                }
+            while (get() == p && !cancelled) {
+                consumerReady.await();
             }
 
-            if (!cancelled) {
-                downstream.onNext(item);
-                produced = p + 1;
-            } else {
+            if (cancelled) {
                 throw STOP;
             }
+
+            downstream.onNext(item);
+            produced = p + 1;
         }
 
         public void setFiber(Fiber<?> fiber) {
