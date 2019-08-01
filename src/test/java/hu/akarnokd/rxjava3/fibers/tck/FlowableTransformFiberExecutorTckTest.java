@@ -17,7 +17,7 @@
 package hu.akarnokd.rxjava3.fibers.tck;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import org.reactivestreams.Publisher;
 import org.testng.annotations.Test;
@@ -52,6 +52,46 @@ public class FlowableTransformFiberExecutorTckTest extends BaseTck<Long> {
 
     @Test
     public void slowProducer() {
+        var log = new ConcurrentLinkedQueue<String>();
+
+        var ts = Flowable.range(1, 10)
+        .doOnRequest(v -> log.offer("Range requested from: " + v))
+        .doOnNext(v -> log.offer("Range: " + v))
+        .subscribeOn(Schedulers.computation())
+        .map(v -> {
+            log.offer("Map: " + v);
+            log.offer("Map interrupted? " + Thread.interrupted());
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException ex) {
+                log.offer("Map sleep interrupted");
+            }
+            return v;
+        })
+        .doOnRequest(v -> log.offer("Transform requested: " + v))
+        .compose(FiberInterop.transform((v, emitter) -> {
+            log.offer("Tansform before emit: " + v);
+            emitter.emit(v);
+            log.offer("Tansform after emit: " + v);
+        }))
+        .doOnRequest(v -> log.offer("Test requested: " + v))
+        .doOnNext(v -> log.offer("Test received: " + v))
+        .test()
+        .awaitDone(5, TimeUnit.SECONDS)
+        ;
+
+        try {
+            ts.assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+        } catch (AssertionError ex) {
+            var sb = new StringBuilder();
+            log.forEach(v -> sb.append(v).append("\r\n"));
+            var exc = new AssertionError(sb.toString(), ex);
+            throw exc;
+        }
+    }
+
+    @Test
+    public void slowProducerService() {
         Flowable.range(1, 10)
         .subscribeOn(Schedulers.computation())
         .map(v -> {
@@ -65,7 +105,7 @@ public class FlowableTransformFiberExecutorTckTest extends BaseTck<Long> {
         })
         .compose(FiberInterop.transform((v, emitter) -> {
             emitter.emit(v);
-        }))
+        }, service))
         .test()
         .awaitDone(5, TimeUnit.SECONDS)
         .assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
