@@ -19,6 +19,11 @@ package hu.akarnokd.rxjava3.fibers;
 import static org.junit.Assert.*;
 
 import java.lang.reflect.*;
+import java.util.*;
+import java.util.concurrent.*;
+
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
 
 public final class TestHelper {
 
@@ -50,4 +55,63 @@ public final class TestHelper {
         }
     }
 
+    /**
+     * Checks if tasks can be immediately executed on the computation scheduler.
+     * @throws ObstructionException if the schedulers don't respond within 1 second
+     */
+    public static void checkObstruction() {
+        final int ncpu = Runtime.getRuntime().availableProcessors();
+
+        final CountDownLatch cdl = new CountDownLatch(ncpu);
+        final List<Scheduler.Worker> workers = new ArrayList<Scheduler.Worker>();
+        final Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                cdl.countDown();
+            }
+        };
+
+        for (int i = 0; i < ncpu; i++) {
+            workers.add(Schedulers.computation().createWorker());
+        }
+        for (Scheduler.Worker w : workers) {
+            w.schedule(task);
+        }
+        try {
+            if (!cdl.await(1, TimeUnit.SECONDS)) {
+                var ex = new ObstructionException("Obstruction/Timeout detected!");
+
+                for (var e : Thread.getAllStackTraces().entrySet()) {
+                    if (e.getKey().getName().contains("Computation")) {
+                        ex.addSuppressed(new Exception() {
+                            private static final long serialVersionUID = 8885288151092764756L;
+
+                            @Override
+                            public synchronized Throwable fillInStackTrace() {
+                                setStackTrace(e.getValue());
+                                return this;
+                            }
+                        });
+                    }
+                }
+
+                throw ex;
+            }
+        } catch (InterruptedException ex) {
+            throw new ObstructionException("Interrupted: " + ex);
+        } finally {
+            for (Scheduler.Worker w : workers) {
+                w.dispose();
+            }
+        }
+    }
+    /**
+     * Exception thrown if obstruction was detected.
+     */
+    public static final class ObstructionException extends RuntimeException {
+        private static final long serialVersionUID = -6380717994471291795L;
+        public ObstructionException(String message) {
+            super(message);
+        }
+    }
 }

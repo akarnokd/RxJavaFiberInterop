@@ -22,7 +22,7 @@ import java.util.concurrent.*;
 import org.reactivestreams.Publisher;
 import org.testng.annotations.Test;
 
-import hu.akarnokd.rxjava3.fibers.FiberInterop;
+import hu.akarnokd.rxjava3.fibers.*;
 import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
 
@@ -95,6 +95,8 @@ public class FlowableTransformFiberExecutorTckTest extends BaseTck<Long> {
 
     @Test
     public void slowProducerService() {
+        TestHelper.checkObstruction();
+
         Flowable.range(1, 10)
         .subscribeOn(Schedulers.computation())
         .map(v -> {
