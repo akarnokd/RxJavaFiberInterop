@@ -56,7 +56,11 @@ public class FlowableTransformFiberExecutorTckTest extends BaseTck<Long> {
         .subscribeOn(Schedulers.computation())
         .map(v -> {
             Thread.interrupted();
-            Thread.sleep(10);
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException ex) {
+                // ignored
+            }
             return v;
         })
         .compose(FiberInterop.transform((v, emitter) -> {
