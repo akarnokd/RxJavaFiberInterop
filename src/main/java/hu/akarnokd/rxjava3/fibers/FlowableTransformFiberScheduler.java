@@ -183,7 +183,7 @@ implements FlowableTransformer<T, R> {
             if (f != null && f != this) {
                 ((Fiber<?>)f).cancel();
             }
-            cleanup();
+            // cleanup(); don't kill the worker
 
             producerReady.resume();
             consumerReady.resume();

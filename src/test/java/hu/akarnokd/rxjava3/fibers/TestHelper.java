@@ -78,29 +78,20 @@ public final class TestHelper {
             w.schedule(task);
         }
         try {
-            if (!cdl.await(1, TimeUnit.SECONDS)) {
+            if (!cdl.await(5, TimeUnit.SECONDS)) {
                 int cnt = 0;
+                var sb = new StringBuilder();
                 for (var e : Thread.getAllStackTraces().entrySet()) {
                     if (e.getKey().getName().contains("Computation")) {
                         cnt++;
+                        sb.append("Thread: ").append(e.getKey()).append("\r\n");
+                        for (var entry : e.getValue()) {
+                            sb.append(" at ").append(entry).append("\r\n");
+                        }
                     }
                 }
 
-                var ex = new ObstructionException("Obstruction/Timeout detected! ncpu = " + ncpu + ", computation workers = " + cnt);
-
-                for (var e : Thread.getAllStackTraces().entrySet()) {
-                    if (e.getKey().getName().contains("Computation")) {
-                        ex.addSuppressed(new Exception(e.getKey().getName()) {
-                            private static final long serialVersionUID = 8885288151092764756L;
-
-                            @Override
-                            public synchronized Throwable fillInStackTrace() {
-                                setStackTrace(e.getValue());
-                                return this;
-                            }
-                        });
-                    }
-                }
+                var ex = new ObstructionException("Obstruction/Timeout detected! ncpu = " + ncpu + ", computation workers = " + cnt + "\r\n" + sb);
 
                 throw ex;
             }
