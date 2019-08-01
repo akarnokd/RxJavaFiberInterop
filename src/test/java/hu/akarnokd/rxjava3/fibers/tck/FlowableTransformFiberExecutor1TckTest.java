@@ -37,7 +37,7 @@ public class FlowableTransformFiberExecutor1TckTest extends BaseTck<Long> {
                     if (v < rest - 1 || half == rest) {
                         emitter.emit(v);
                     }
-                }, 1));
+                }, service, 1));
     }
 
     @Override
@@ -45,6 +45,6 @@ public class FlowableTransformFiberExecutor1TckTest extends BaseTck<Long> {
         return Flowable.just(1)
                 .compose(FiberInterop.transform((v, emitter) -> {
                     throw new IOException();
-                }, 1));
+                }, service, 1));
     }
 }

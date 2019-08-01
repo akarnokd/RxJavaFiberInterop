@@ -17,12 +17,14 @@
 package hu.akarnokd.rxjava3.fibers.tck;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
 import org.testng.annotations.Test;
 
 import hu.akarnokd.rxjava3.fibers.FiberInterop;
 import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
 
 @Test
 public class FlowableTransformFiberExecutor2TckTest extends BaseTck<Long> {
@@ -37,7 +39,7 @@ public class FlowableTransformFiberExecutor2TckTest extends BaseTck<Long> {
                     if (v < rest - 1 || half == rest) {
                         emitter.emit(v);
                     }
-                }, 2));
+                }, service, 2));
     }
 
     @Override
@@ -45,6 +47,23 @@ public class FlowableTransformFiberExecutor2TckTest extends BaseTck<Long> {
         return Flowable.just(1)
                 .compose(FiberInterop.transform((v, emitter) -> {
                     throw new IOException();
-                }, 2));
+                }, service, 2));
+    }
+
+    @Test
+    public void slowProducer() {
+        Flowable.range(1, 10)
+        .subscribeOn(Schedulers.computation())
+        .map(v -> {
+            Thread.interrupted();
+            Thread.sleep(10);
+            return v;
+        })
+        .compose(FiberInterop.transform((v, emitter) -> {
+            emitter.emit(v);
+        }, 2))
+        .test()
+        .awaitDone(5, TimeUnit.SECONDS)
+        .assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     }
 }

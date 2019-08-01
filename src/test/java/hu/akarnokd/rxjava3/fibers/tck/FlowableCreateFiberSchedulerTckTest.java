@@ -17,6 +17,7 @@
 package hu.akarnokd.rxjava3.fibers.tck;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
 import org.testng.annotations.Test;
@@ -42,6 +43,21 @@ public class FlowableCreateFiberSchedulerTckTest extends BaseTck<Long> {
         return FiberInterop.<Long>create(emitter -> {
             throw new IOException();
         }, Schedulers.computation());
+    }
+
+
+    @Test
+    public void slowProducer() {
+        FiberInterop.<Integer>create(emitter -> {
+            for (int i = 1; i < 11; i++) {
+                emitter.emit(i);
+                Thread.interrupted();
+                Thread.sleep(10);
+            }
+        })
+        .test()
+        .awaitDone(5, TimeUnit.SECONDS)
+        .assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     }
 
     /*

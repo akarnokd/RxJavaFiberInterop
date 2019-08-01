@@ -52,17 +52,17 @@ dependencies {
     testImplementation "com.beust:jcommander:1.72"
 }
 
+compileJava.options.fork = true
+compileTestJava.options.fork = true
+
 if (System.getenv("CI") != null) {
     println("Overriding JDK on CI");
-    
-    compileJava.options.fork = true
     compileJava.options.forkOptions.executable = "./jdk-14/bin/javac"
     javadoc.executable = "./jdk-14/bin/javadoc"
     test.executable = project.file(".").absolutePath + "/jdk-14/bin/java"
     println(test.executable)
 } else {
     println("Overriding JDK on local machine");
-    compileJava.options.fork = true
 
     if (System.properties['os.name'].toLowerCase().contains('windows')) {
         println "it's Windows"
@@ -77,6 +77,7 @@ if (System.getenv("CI") != null) {
         test.executable = uname + "/jdk-14-loom/bin/java"
     }
 }
+compileTestJava.options.forkOptions.executable = compileJava.options.forkOptions.executable
 def testExecutable = test.executable
 
 apply plugin: 'maven'

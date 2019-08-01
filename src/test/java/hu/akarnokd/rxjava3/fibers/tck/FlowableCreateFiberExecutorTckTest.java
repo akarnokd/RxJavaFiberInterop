@@ -33,7 +33,7 @@ public class FlowableCreateFiberExecutorTckTest extends BaseTck<Long> {
                     for (var i = 0L; i < elements; i++) {
                         emitter.emit(i);
                     }
-                });
+                }, service);
     }
 
 
@@ -41,6 +41,6 @@ public class FlowableCreateFiberExecutorTckTest extends BaseTck<Long> {
     public Publisher<Long> createFailedPublisher() {
         return FiberInterop.<Long>create(emitter -> {
             throw new IOException();
-        });
+        }, service);
     }
 }

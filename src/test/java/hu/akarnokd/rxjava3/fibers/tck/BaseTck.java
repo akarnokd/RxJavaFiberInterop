@@ -17,10 +17,11 @@
 package hu.akarnokd.rxjava3.fibers.tck;
 
 import java.io.IOException;
+import java.util.concurrent.*;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.*;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import io.reactivex.Flowable;
 
@@ -51,4 +52,15 @@ public abstract class BaseTck<T> extends PublisherVerification<T> {
         return 1024;
     }
 
+    protected static ExecutorService service;
+
+    @BeforeClass
+    public static void before() {
+        service = Executors.newCachedThreadPool();
+    }
+
+    @AfterClass
+    public static void after() {
+        service.shutdown();
+    }
 }
