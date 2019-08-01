@@ -51,7 +51,7 @@ implements FlowableTransformer<T, R> {
     protected void subscribeActual(Subscriber<? super R> s) {
         var parent = new ExecutorTransformFiberSubscriber<>(s, transformer, prefetch);
         source.subscribe(parent);
-        parent.setFiber(FiberScope.background().schedule(executor, parent));
+        FiberScope.background().schedule(executor, parent);
     }
 
     static final class ExecutorTransformFiberSubscriber<T, R> extends TransformFiberSubscriber<T, R> {

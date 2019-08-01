@@ -45,8 +45,7 @@ final class FlowableCreateFiberExecutor<T> extends Flowable<T> {
         var parent = new ExecutorCreateFiberSubscription<>(s, generator);
         s.onSubscribe(parent);
 
-        var fiber = FiberScope.background().schedule(executor, parent);
-        parent.setFiber(fiber);
+        FiberScope.background().schedule(executor, parent);
     }
 
 
