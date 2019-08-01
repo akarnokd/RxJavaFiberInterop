@@ -62,11 +62,20 @@ if (System.getenv("CI") != null) {
     println(test.executable)
 } else {
     println("Overriding JDK on local machine");
-    
     compileJava.options.fork = true
-    compileJava.options.forkOptions.executable = "c:/work/jdk-14-loom/bin/javac.exe"
-    javadoc.executable = "c:/work/jdk-14-loom/bin/javadoc.exe"
-    test.executable = "c:/work/jdk-14-loom/bin/java.exe"
+
+    if (System.properties['os.name'].toLowerCase().contains('windows')) {
+        println "it's Windows"
+        compileJava.options.forkOptions.executable = "c:/work/jdk-14-loom/bin/javac.exe"
+        javadoc.executable = "c:/work/jdk-14-loom/bin/javadoc.exe"
+        test.executable = "c:/work/jdk-14-loom/bin/java.exe"
+    } else {
+        println "it's Linux probably"
+        def uname = System.properties['user.home']
+        compileJava.options.forkOptions.executable = uname + "/jdk-14-loom/bin/javac"
+        javadoc.executable = uname + "/jdk-14-loom/bin/javadoc"
+        test.executable = uname + "/jdk-14-loom/bin/java"
+    }
 }
 def testExecutable = test.executable
 
