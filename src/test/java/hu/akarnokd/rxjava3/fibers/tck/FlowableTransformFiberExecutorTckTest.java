@@ -55,9 +55,11 @@ public class FlowableTransformFiberExecutorTckTest extends BaseTck<Long> {
         var log = new ConcurrentLinkedQueue<String>();
 
         var ts = Flowable.range(1, 10)
-        .doOnRequest(v -> log.offer("Range requested from: " + v))
         .doOnNext(v -> log.offer("Range: " + v))
+        .doOnRequest(v -> log.offer("SubscribeOn requested: " + v))
+        .doOnSubscribe(s -> log.offer("Range subscribed to"))
         .subscribeOn(Schedulers.computation())
+        .doOnRequest(v -> log.offer("Map requested: " + v))
         .map(v -> {
             log.offer("Map: " + v);
             log.offer("Map interrupted? " + Thread.interrupted());
@@ -84,8 +86,8 @@ public class FlowableTransformFiberExecutorTckTest extends BaseTck<Long> {
             ts.assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         } catch (AssertionError ex) {
             var sb = new StringBuilder();
-            log.forEach(v -> sb.append(v).append("\r\n"));
-            var exc = new AssertionError(sb.toString(), ex);
+            log.forEach(v -> sb.append("\r\n").append(v));
+            var exc = new AssertionError(sb.append("\r\n").toString(), ex);
             throw exc;
         }
     }
