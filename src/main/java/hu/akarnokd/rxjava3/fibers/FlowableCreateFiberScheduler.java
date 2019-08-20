@@ -18,13 +18,13 @@ package hu.akarnokd.rxjava3.fibers;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.reactivestreams.*;
 
-import io.reactivex.*;
-import io.reactivex.Scheduler.Worker;
-import io.reactivex.internal.util.BackpressureHelper;
+import io.reactivex.rxjava3.core.*;
+import io.reactivex.rxjava3.core.Scheduler.Worker;
+import io.reactivex.rxjava3.internal.util.BackpressureHelper;
 
 /**
  * Runs a generator callback on a Fiber backed by a Worker of the given scheduler

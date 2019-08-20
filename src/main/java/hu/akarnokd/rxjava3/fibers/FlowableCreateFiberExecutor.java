@@ -21,7 +21,7 @@ import java.util.concurrent.Executor;
 import org.reactivestreams.Subscriber;
 
 import hu.akarnokd.rxjava3.fibers.FlowableCreateFiberScheduler.CreateFiberSubscription;
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Runs a generator callback on a Fiber backed by a Worker of the given scheduler

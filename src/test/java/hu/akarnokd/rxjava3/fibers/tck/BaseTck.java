@@ -23,7 +23,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.*;
 import org.testng.annotations.*;
 
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 
 /**
  * Base abstract class for Flowable verifications, contains support for creating

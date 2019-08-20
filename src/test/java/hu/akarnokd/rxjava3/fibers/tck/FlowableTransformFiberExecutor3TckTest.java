@@ -22,7 +22,7 @@ import org.reactivestreams.Publisher;
 import org.testng.annotations.Test;
 
 import hu.akarnokd.rxjava3.fibers.FiberInterop;
-import io.reactivex.Flowable;
+import io.reactivex.rxjava3.core.Flowable;
 
 @Test
 public class FlowableTransformFiberExecutor3TckTest extends BaseTck<Long> {

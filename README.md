@@ -8,14 +8,14 @@ Library for interoperation between RxJava 3 and Project Loom's Fibers.
 ```groovy
 
 dependencies {
-    implementation "com.github.akarnokd:rxjava3-fiber-interop:0.0.2"
+    implementation "com.github.akarnokd:rxjava3-fiber-interop:0.0.3"
 }
 ```
 
 
 # Components
 
-## FiberInteroop
+## FiberInterop
 
 ### create
 

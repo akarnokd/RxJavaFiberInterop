@@ -22,8 +22,8 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-import io.reactivex.Scheduler;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public final class TestHelper {
 

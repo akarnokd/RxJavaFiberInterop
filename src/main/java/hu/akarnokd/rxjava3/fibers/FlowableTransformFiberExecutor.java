@@ -21,7 +21,7 @@ import java.util.concurrent.Executor;
 import org.reactivestreams.*;
 
 import hu.akarnokd.rxjava3.fibers.FlowableTransformFiberScheduler.TransformFiberSubscriber;
-import io.reactivex.*;
+import io.reactivex.rxjava3.core.*;
 
 final class FlowableTransformFiberExecutor<T, R> extends Flowable<R>
 implements FlowableTransformer<T, R> {
