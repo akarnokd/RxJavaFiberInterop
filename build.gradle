@@ -44,7 +44,7 @@ repositories {
 }
 
 dependencies {
-    implementation "io.reactivex.rxjava3:rxjava:3.0.0-RC5"
+    implementation "io.reactivex.rxjava3:rxjava:3.0.0-RC6"
     testImplementation 'junit:junit:4.12'
     testImplementation "org.reactivestreams:reactive-streams-tck:1.0.3"
     testImplementation "org.testng:testng:7.0.0"
