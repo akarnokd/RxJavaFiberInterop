@@ -120,6 +120,18 @@ public class FiberInteropTest {
         assertTrue(result.get());
     }
 
+    @Test
+    public void plainVirtual() {
+        var result = new AtomicReference<Boolean>();
+        try (var exec = Executors.newSingleThreadExecutor()) {
+            try (var scope = Executors.newUnboundedExecutor(Thread.builder().virtual(exec).factory())) {
+                scope.submit(() -> result.set(Thread.currentThread().isVirtual()));
+            }
+        }
+
+        assertTrue(result.get());
+    }
+
     static void withVirtual(Consumer<ExecutorService> call) throws Throwable {
         try (var exec = Executors.newUnboundedExecutor(Thread.builder().virtual().factory())) {
             call.accept(exec);
