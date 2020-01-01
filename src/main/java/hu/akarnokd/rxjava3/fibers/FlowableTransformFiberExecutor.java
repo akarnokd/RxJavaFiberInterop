@@ -16,7 +16,7 @@
 
 package hu.akarnokd.rxjava3.fibers;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.*;
 
 import org.reactivestreams.*;
 
@@ -30,12 +30,12 @@ implements FlowableTransformer<T, R> {
 
     final FiberTransformer<T, R> transformer;
 
-    final Executor executor;
+    final ExecutorService executor;
 
     final int prefetch;
 
     FlowableTransformFiberExecutor(Flowable<T> source,
-            FiberTransformer<T, R> transformer, Executor executor, int prefetch) {
+            FiberTransformer<T, R> transformer, ExecutorService executor, int prefetch) {
         this.source = source;
         this.transformer = transformer;
         this.executor = executor;
@@ -51,7 +51,7 @@ implements FlowableTransformer<T, R> {
     protected void subscribeActual(Subscriber<? super R> s) {
         var parent = new ExecutorTransformFiberSubscriber<>(s, transformer, prefetch);
         source.subscribe(parent);
-        FiberScope.background().schedule(executor, parent);
+        executor.submit(parent);
     }
 
     static final class ExecutorTransformFiberSubscriber<T, R> extends TransformFiberSubscriber<T, R> {

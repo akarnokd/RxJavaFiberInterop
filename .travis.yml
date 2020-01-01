@@ -9,7 +9,7 @@ before_install:
   - mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
   - export GRADLE_OPTS=-Xmx1024m
   - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
-  - wget https://download.java.net/java/early_access/loom/2/openjdk-14-loom+2-4_linux-x64_bin.tar.gz
+  - wget https://download.java.net/java/early_access/loom/3/openjdk-14-loom+3-74_linux-x64_bin.tar.gz
   - tar -zxvf openjdk-14-loom+2-4_linux-x64_bin.tar.gz
   - chmod +x install-jdk.sh
   - . ./install-jdk.sh -F 12 -L GPL

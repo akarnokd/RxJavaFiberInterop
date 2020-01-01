@@ -16,9 +16,9 @@
 
 package hu.akarnokd.rxjava3.fibers;
 
-import static org.junit.Assert.assertNull;
-import static org.testng.Assert.assertEquals;
+import static org.junit.Assert.*;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.testng.annotations.Test;
@@ -67,7 +67,7 @@ public class ResumableFiberTest {
 
     @Test(timeOut = 30000)
     public void pingPong() throws Exception {
-        try (var scope = FiberScope.open()) {
+        try (var scope = Executors.newUnboundedExecutor(Thread.builder().virtual().factory())) {
 
             var producerReady = new ResumableFiber();
             var consumerReady = new ResumableFiber();
@@ -76,8 +76,8 @@ public class ResumableFiberTest {
 
             var exchange = new AtomicReference<Integer>();
 
-            var job1 = scope.schedule(() -> {
-                Fiber.current().get(); // We should be in a Fiber
+            var job1 = scope.submit(() -> {
+                assertTrue(Thread.currentThread().isVirtual());
                 for (int i = 1; i <= n; i++) {
 
                     consumerReady.await();
@@ -91,8 +91,8 @@ public class ResumableFiberTest {
                 return null;
             });
 
-            var job2 = scope.schedule(() -> {
-                Fiber.current().get(); // We should be in a Fiber
+            var job2 = scope.submit(() -> {
+                assertTrue(Thread.currentThread().isVirtual());
                 var value = -1;
                 while (value != n) {
                     consumerReady.resume();
@@ -105,9 +105,9 @@ public class ResumableFiberTest {
                 return value;
             });
 
-            job1.join();
+            job1.get();
 
-            assertEquals(n, job2.join().intValue());
+            assertEquals(n, job2.get().intValue());
         }
     }
 }

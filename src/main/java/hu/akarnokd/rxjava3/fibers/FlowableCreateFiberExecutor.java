@@ -16,7 +16,7 @@
 
 package hu.akarnokd.rxjava3.fibers;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.*;
 
 import org.reactivestreams.Subscriber;
 
@@ -33,31 +33,36 @@ final class FlowableCreateFiberExecutor<T> extends Flowable<T> {
 
     final FiberGenerator<T> generator;
 
-    final Executor executor;
+    final ExecutorService executor;
 
-    FlowableCreateFiberExecutor(FiberGenerator<T> generator, Executor executor) {
+    FlowableCreateFiberExecutor(FiberGenerator<T> generator, ExecutorService executor) {
         this.generator = generator;
         this.executor = executor;
     }
 
     @Override
     protected void subscribeActual(Subscriber<? super T> s) {
-        var parent = new ExecutorCreateFiberSubscription<>(s, generator);
+        var scope = Executors.newUnboundedExecutor(Thread.builder().virtual(executor).factory());
+        var parent = new ExecutorCreateFiberSubscription<>(s, generator, scope);
         s.onSubscribe(parent);
 
-        FiberScope.background().schedule(executor, parent);
+        scope.submit(parent);
     }
 
 
     static final class ExecutorCreateFiberSubscription<T> extends CreateFiberSubscription<T> {
         private static final long serialVersionUID = -8552685969992500057L;
 
-        ExecutorCreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator) {
+        final ExecutorService scope;
+
+        ExecutorCreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator, ExecutorService scope) {
             super(downstream, generator);
+            this.scope = scope;
         }
 
         @Override
         protected void cleanup() {
+            scope.close();
         }
     }
 

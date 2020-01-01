@@ -17,7 +17,7 @@
 package hu.akarnokd.rxjava3.fibers;
 
 import java.util.Objects;
-import java.util.concurrent.Callable;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.reactivestreams.*;
@@ -46,11 +46,14 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
     @Override
     protected void subscribeActual(Subscriber<? super T> s) {
         var worker = scheduler.createWorker();
-        var parent = new WorkerCreateFiberSubscription<>(s, generator, worker);
+
+        var executor = Executors.newUnboundedExecutor(Thread.builder().virtual(worker::schedule).factory());
+
+        var parent = new WorkerCreateFiberSubscription<>(s, generator, worker, executor);
         s.onSubscribe(parent);
 
         // Ignoring the Fiber because it can lead to awkward interruptions if cancelled
-        FiberScope.background().schedule(worker::schedule, parent);
+        executor.submit(parent);
     }
 
     static final class WorkerCreateFiberSubscription<T> extends CreateFiberSubscription<T> {
@@ -58,14 +61,18 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
 
         final Worker worker;
 
-        WorkerCreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator, Worker worker) {
+        final ExecutorService executor;
+
+        WorkerCreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator, Worker worker, ExecutorService executor) {
             super(downstream, generator);
             this.worker = worker;
+            this.executor = executor;
         }
 
         @Override
         protected void cleanup() {
             worker.dispose();
+            executor.close();
         }
     }
 

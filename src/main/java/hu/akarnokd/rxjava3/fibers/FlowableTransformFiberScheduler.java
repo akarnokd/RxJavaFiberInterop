@@ -17,7 +17,7 @@
 package hu.akarnokd.rxjava3.fibers;
 
 import java.util.Objects;
-import java.util.concurrent.Callable;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.reactivestreams.*;
@@ -54,10 +54,13 @@ implements FlowableTransformer<T, R> {
     @Override
     protected void subscribeActual(Subscriber<? super R> s) {
         var worker = scheduler.createWorker();
-        var parent = new WorkerTransformFiberSubscriber<>(s, transformer, worker, prefetch);
+
+        var executor = Executors.newUnboundedExecutor(Thread.builder().virtual(worker::schedule).factory());
+
+        var parent = new WorkerTransformFiberSubscriber<>(s, transformer, worker, prefetch, executor);
         source.subscribe(parent);
         // Ignoring the Fiber because it can lead to awkward interruptions if cancelled
-        FiberScope.background().schedule(worker::schedule, parent);
+        executor.submit(parent);
     }
 
     static final class WorkerTransformFiberSubscriber<T, R> extends TransformFiberSubscriber<T, R> {
@@ -66,16 +69,20 @@ implements FlowableTransformer<T, R> {
 
         final Worker worker;
 
+        final ExecutorService executor;
+
         WorkerTransformFiberSubscriber(Subscriber<? super R> downstream,
                 FiberTransformer<T, R> transformer, Worker worker,
-                int prefetch) {
+                int prefetch, ExecutorService executor) {
             super(downstream, transformer, prefetch);
             this.worker = worker;
+            this.executor = executor;
         }
 
         @Override
         protected void cleanup() {
             worker.dispose();
+            executor.close();
         }
     }
 
@@ -184,7 +191,7 @@ implements FlowableTransformer<T, R> {
         }
 
         @Override
-        public Void call() throws Exception {
+        public Void call() {
             try {
                 try {
                     var consumed = 0L;

@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 
 /**
- * Fundamental primitive for suspending and resuming a Fiber.
+ * Fundamental primitive for suspending and resuming a Thread.
  */
 public class ResumableFiber extends AtomicReference<Object> {
 
@@ -37,13 +37,7 @@ public class ResumableFiber extends AtomicReference<Object> {
      * a resume indication.
      */
     public final void await() {
-        Object toUnpark;
-        var fiber = Fiber.current();
-        if (fiber.isEmpty()) {
-            toUnpark = Thread.currentThread();
-        } else {
-            toUnpark = fiber.get();
-        }
+        Thread toUnpark = Thread.currentThread();
 
         for (;;) {
             var current = get();
@@ -82,7 +76,7 @@ public class ResumableFiber extends AtomicReference<Object> {
         if (get() != READY) {
             var old = getAndSet(READY);
             if (old != READY) {
-                LockSupport.unpark(old);
+                LockSupport.unpark((Thread)old);
             }
         }
     }

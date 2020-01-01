@@ -45,7 +45,7 @@ public final class FiberInterop {
         return RxJavaPlugins.onAssembly(new FlowableCreateFiberScheduler<>(generator, scheduler));
     }
 
-    public static <T> Flowable<T> create(FiberGenerator<T> generator, Executor executor) {
+    public static <T> Flowable<T> create(FiberGenerator<T> generator, ExecutorService executor) {
         Objects.requireNonNull(generator, "generator is null");
         Objects.requireNonNull(executor, "executor is null");
         return RxJavaPlugins.onAssembly(new FlowableCreateFiberExecutor<>(generator, executor));
@@ -70,11 +70,11 @@ public final class FiberInterop {
         return transform(transformer, ForkJoinPool.commonPool(), prefetch);
     }
 
-    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, Executor scheduler) {
+    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, ExecutorService scheduler) {
         return transform(transformer, scheduler, Flowable.bufferSize());
     }
 
-    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, Executor scheduler, int prefetch) {
+    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, ExecutorService scheduler, int prefetch) {
         Objects.requireNonNull(transformer, "transformer is null");
         Objects.requireNonNull(scheduler, "scheduler is null");
         ObjectHelper.verifyPositive(prefetch, "prefetch");
