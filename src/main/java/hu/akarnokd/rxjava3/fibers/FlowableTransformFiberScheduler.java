@@ -69,7 +69,7 @@ implements FlowableTransformer<T, R> {
 
         final Worker worker;
 
-        final ExecutorService executor;
+        ExecutorService executor;
 
         WorkerTransformFiberSubscriber(Subscriber<? super R> downstream,
                 FiberTransformer<T, R> transformer, Worker worker,
@@ -82,7 +82,11 @@ implements FlowableTransformer<T, R> {
         @Override
         protected void cleanup() {
             worker.dispose();
-            executor.close();
+            var e = executor;
+            executor = null;
+            if (e != null) {
+                e.close();
+            }
         }
     }
 
@@ -91,7 +95,7 @@ implements FlowableTransformer<T, R> {
 
         private static final long serialVersionUID = -4702456711290258571L;
 
-        final Subscriber<? super R> downstream;
+        Subscriber<? super R> downstream;
 
         final FiberTransformer<T, R> transformer;
 
@@ -239,6 +243,7 @@ implements FlowableTransformer<T, R> {
                 }
             } finally {
                 queue.clear();
+                downstream = null;
                 cleanup();
             }
             return null;

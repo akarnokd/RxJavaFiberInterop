@@ -61,7 +61,7 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
 
         final Worker worker;
 
-        final ExecutorService executor;
+        ExecutorService executor;
 
         WorkerCreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator, Worker worker, ExecutorService executor) {
             super(downstream, generator);
@@ -72,7 +72,11 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
         @Override
         protected void cleanup() {
             worker.dispose();
-            executor.close();
+            var e = executor;
+            executor = null;
+            if (e != null) {
+                e.close();
+            }
         }
     }
 
@@ -80,7 +84,7 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
 
         private static final long serialVersionUID = -6959205135542203083L;
 
-        final Subscriber<? super T> downstream;
+        Subscriber<? super T> downstream;
 
         final FiberGenerator<T> generator;
 
@@ -115,6 +119,7 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
                     downstream.onComplete();
                 }
             } finally {
+                downstream = null;
                 cleanup();
             }
             return null;

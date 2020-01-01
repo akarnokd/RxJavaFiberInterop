@@ -53,7 +53,7 @@ final class FlowableCreateFiberExecutor<T> extends Flowable<T> {
     static final class ExecutorCreateFiberSubscription<T> extends CreateFiberSubscription<T> {
         private static final long serialVersionUID = -8552685969992500057L;
 
-        final ExecutorService scope;
+        ExecutorService scope;
 
         ExecutorCreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator, ExecutorService scope) {
             super(downstream, generator);
@@ -62,7 +62,11 @@ final class FlowableCreateFiberExecutor<T> extends Flowable<T> {
 
         @Override
         protected void cleanup() {
-            scope.close();
+            var e = scope;
+            scope = null;
+            if (e != null) {
+                e.close();
+            }
         }
     }
 
