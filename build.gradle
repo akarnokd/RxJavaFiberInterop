@@ -53,27 +53,29 @@ dependencies {
 compileJava.options.fork = true
 compileTestJava.options.fork = true
 
+def loomDir = System.getenv("LOOM_JDK")
 if (System.getenv("CI") != null) {
     println("Overriding JDK on CI");
-    def loomDir = System.getenv("LOOM_JDK")
     compileJava.options.forkOptions.executable = "./" + loomDir + "/bin/javac"
-    javadoc.executable = "./jdk-14/bin/javadoc"
+    javadoc.executable = "./" +loomDir + "/bin/javadoc"
     test.executable = project.file(".").absolutePath + "/" + loomDir + "/bin/java"
     println(test.executable)
 } else {
     println("Overriding JDK on local machine");
-
+    if (loomDir == null || "".equals(loomDir)) {
+        loomDir = "jdk-14-loom"
+    }
     if (System.properties['os.name'].toLowerCase().contains('windows')) {
         println "it's Windows"
-        compileJava.options.forkOptions.executable = "c:/work/jdk-14-loom/bin/javac.exe"
-        javadoc.executable = "c:/work/jdk-14-loom/bin/javadoc.exe"
-        test.executable = "c:/work/jdk-14-loom/bin/java.exe"
+        compileJava.options.forkOptions.executable = "c:/work/" + loomDir + "/bin/javac.exe"
+        javadoc.executable = "c:/work/" + loomDir + "/bin/javadoc.exe"
+        test.executable = "c:/work/" + loomDir + "/bin/java.exe"
     } else {
         println "it's Linux probably"
         def uname = System.properties['user.home']
-        compileJava.options.forkOptions.executable = uname + "/jdk-14-loom/bin/javac"
-        javadoc.executable = uname + "/jdk-14-loom/bin/javadoc"
-        test.executable = uname + "/jdk-14-loom/bin/java"
+        compileJava.options.forkOptions.executable = uname + "/" + loomDir + "/bin/javac"
+        javadoc.executable = uname + "/" + loomDir + "/bin/javadoc"
+        test.executable = uname + "/" + loomDir + "/bin/java"
     }
 }
 compileTestJava.options.forkOptions.executable = compileJava.options.forkOptions.executable
