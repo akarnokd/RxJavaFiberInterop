@@ -42,7 +42,7 @@ final class FlowableCreateFiberExecutor<T> extends Flowable<T> {
 
     @Override
     protected void subscribeActual(Subscriber<? super T> s) {
-        var scope = Executors.newUnboundedExecutor(Thread.builder().virtual(executor).factory());
+        var scope = Executors.newThreadExecutor(Thread.builder().virtual(executor).factory());
         var parent = new ExecutorCreateFiberSubscription<>(s, generator, scope);
         s.onSubscribe(parent);
 

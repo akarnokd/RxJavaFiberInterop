@@ -67,7 +67,7 @@ public class ResumableFiberTest {
 
     @Test(timeOut = 30000)
     public void pingPong() throws Exception {
-        try (var scope = Executors.newUnboundedExecutor(Thread.builder().virtual().factory())) {
+        try (var scope = Executors.newThreadExecutor(Thread.builder().virtual().factory())) {
 
             var producerReady = new ResumableFiber();
             var consumerReady = new ResumableFiber();
