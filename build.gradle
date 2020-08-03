@@ -47,7 +47,7 @@ dependencies {
     testImplementation 'junit:junit:4.13'
     testImplementation "org.reactivestreams:reactive-streams-tck:1.0.3"
     testImplementation "org.testng:testng:7.1.0"
-    testImplementation "com.beust:jcommander:1.78"
+    testImplementation "com.beust:jcommander:1.80"
 }
 
 compileJava.options.fork = true
