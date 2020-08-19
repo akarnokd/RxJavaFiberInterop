@@ -9,8 +9,8 @@ before_install:
   - mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
   - export GRADLE_OPTS=-Xmx1024m
   - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
-  - wget https://download.java.net/java/early_access/loom/4/openjdk-16-loom+4-56_linux-x64_bin.tar.gz
-  - tar -zxvf openjdk-16-loom+4-56_linux-x64_bin.tar.gz
+  - wget https://download.java.net/java/early_access/loom/6/openjdk-16-loom+6-105_linux-x64_bin.tar.gz
+  - tar -zxvf openjdk-16-loom+6-105_linux-x64_bin.tar.gz
   - export LOOM_JDK=jdk-16
   - chmod +x install-jdk.sh
   - . ./install-jdk.sh -F 12 -L GPL
