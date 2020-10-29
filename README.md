@@ -1,7 +1,7 @@
 # RxJavaFiberInterop
 Library for interoperation between RxJava 3 and Project Loom's Fibers.
 
-<a href='https://travis-ci.org/akarnokd/RxJavaFiberInterop/builds'><img src='https://travis-ci.org/akarnokd/RxJavaFiberInterop.svg?branch=master'></a>
+<a href='https://travis-ci.com/akarnokd/RxJavaFiberInterop/builds'><img src='https://travis-ci.com/akarnokd/RxJavaFiberInterop.svg?branch=master'></a>
 [![codecov.io](http://codecov.io/github/akarnokd/RxJavaFiberInterop/coverage.svg?branch=master)](http://codecov.io/github/akarnokd/RxJavaFiberInterop?branch=master)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.akarnokd/rxjava3-fiber-interop/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.akarnokd/rxjava3-fiber-interop)
 
