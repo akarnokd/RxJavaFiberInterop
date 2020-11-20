@@ -16,10 +16,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 1.8
+    - name: Set up JDK 12
       uses: actions/setup-java@v1
       with:
-        java-version: 1.8
+        java-version: 12
     - name: Cache Gradle packages
       uses: actions/cache@v2
       with:
@@ -28,6 +28,10 @@ jobs:
         restore-keys: ${{ runner.os }}-gradle
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+    - name: Grant execute permission for use_loom.sh
+      run: chmod +x use_loom.sh
+    - name: "Override to Loom"
+      run: ./use_loom.sh
     - name: Build with Gradle
       run: ./gradlew build --stacktrace
     - name: Upload to Codecov  
