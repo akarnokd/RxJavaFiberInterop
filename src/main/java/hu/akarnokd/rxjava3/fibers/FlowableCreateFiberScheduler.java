@@ -47,7 +47,7 @@ final class FlowableCreateFiberScheduler<T> extends Flowable<T> {
     protected void subscribeActual(Subscriber<? super T> s) {
         var worker = scheduler.createWorker();
 
-        var executor = Executors.newThreadExecutor(Thread.builder().virtual(worker::schedule).factory());
+        var executor = Executors.newThreadExecutor(Thread.ofVirtual().scheduler(worker::schedule).factory());
 
         var parent = new WorkerCreateFiberSubscription<>(s, generator, worker, executor);
         s.onSubscribe(parent);
