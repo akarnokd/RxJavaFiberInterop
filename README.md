@@ -12,7 +12,7 @@ dependencies {
 }
 ```
 
-Always requires the latest Loom build from http://jdk.java.net/loom/
+Always requires the latest Loom build from https://jdk.java.net/loom/
 
 *Note that Loom is in early access and the API, naming and usage keeps changing, a lot.*
 
