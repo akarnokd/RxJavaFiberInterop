@@ -55,7 +55,7 @@ implements FlowableTransformer<T, R> {
     protected void subscribeActual(Subscriber<? super R> s) {
         var worker = scheduler.createWorker();
 
-        var executor = Executors.newThreadExecutor(Thread.ofVirtual().scheduler(worker::schedule).factory());
+        var executor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(worker::schedule).factory());
 
         var parent = new WorkerTransformFiberSubscriber<>(s, transformer, worker, prefetch, executor);
         source.subscribe(parent);

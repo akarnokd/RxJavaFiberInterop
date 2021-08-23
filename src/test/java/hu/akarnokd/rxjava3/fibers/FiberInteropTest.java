@@ -82,7 +82,7 @@ public class FiberInteropTest {
     public void virtualParent() {
         var result = new AtomicReference<Boolean>();
         try (var exec = Executors.newSingleThreadExecutor()) {
-            try (var scope = Executors.newThreadExecutor(Thread.ofVirtual().scheduler(exec).factory())) {
+            try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(exec).factory())) {
                 scope.submit(() -> result.set(Thread.currentThread().isVirtual()));
             }
         }
@@ -95,7 +95,7 @@ public class FiberInteropTest {
         var worker = Schedulers.computation().createWorker();
         try {
             var result = new AtomicReference<Boolean>();
-            try (var scope = Executors.newThreadExecutor(Thread.ofVirtual().scheduler(worker::schedule).factory())) {
+            try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(worker::schedule).factory())) {
                 scope.submit(() -> result.set(Thread.currentThread().isVirtual()));
             }
 
@@ -110,8 +110,8 @@ public class FiberInteropTest {
     public void nestedVirtual() {
         var result = new AtomicReference<Boolean>();
         try (var exec = Executors.newSingleThreadExecutor()) {
-            try (var scope = Executors.newThreadExecutor(Thread.ofVirtual().scheduler(exec).factory())) {
-                try (var scope2  = Executors.newThreadExecutor(Thread.ofVirtual().scheduler(scope).factory())) {
+            try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(exec).factory())) {
+                try (var scope2  = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(scope).factory())) {
                     scope2.submit(() -> result.set(Thread.currentThread().isVirtual()));
                 }
             }
@@ -124,7 +124,7 @@ public class FiberInteropTest {
     public void plainVirtual() {
         var result = new AtomicReference<Boolean>();
         try (var exec = Executors.newSingleThreadExecutor()) {
-            try (var scope = Executors.newThreadExecutor(Thread.ofVirtual().scheduler(exec).factory())) {
+            try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(exec).factory())) {
                 scope.submit(() -> result.set(Thread.currentThread().isVirtual()));
             }
         }
@@ -133,13 +133,13 @@ public class FiberInteropTest {
     }
 
     static void withVirtual(Consumer<ExecutorService> call) throws Throwable {
-        try (var exec = Executors.newThreadExecutor(Thread.ofVirtual().factory())) {
+        try (var exec = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory())) {
             call.accept(exec);
         }
     }
 
     static void withVirtual(Executor parent, Consumer<ExecutorService> call) throws Throwable {
-        try (var exec = Executors.newThreadExecutor(Thread.ofVirtual().scheduler(parent).factory())) {
+        try (var exec = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(parent).factory())) {
             call.accept(exec);
         }
     }
