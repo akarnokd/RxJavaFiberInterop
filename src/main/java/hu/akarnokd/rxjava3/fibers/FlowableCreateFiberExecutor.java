@@ -16,12 +16,14 @@
 
 package hu.akarnokd.rxjava3.fibers;
 
+import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.*;
 
-import hu.akarnokd.rxjava3.fibers.FlowableCreateFiberScheduler.CreateFiberSubscription;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.internal.util.BackpressureHelper;
 
 /**
  * Runs a generator callback on a Fiber backed by a Worker of the given scheduler
@@ -42,32 +44,80 @@ final class FlowableCreateFiberExecutor<T> extends Flowable<T> {
 
     @Override
     protected void subscribeActual(Subscriber<? super T> s) {
-        var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(executor).factory());
-        var parent = new ExecutorCreateFiberSubscription<>(s, generator, scope);
+        var parent = new ExecutorCreateFiberSubscription<>(s, generator);
         s.onSubscribe(parent);
 
-        scope.submit(parent);
+        executor.submit(parent);
     }
 
+    static final class ExecutorCreateFiberSubscription<T> extends AtomicLong implements Subscription, Callable<Void>, FiberEmitter<T> {
 
-    static final class ExecutorCreateFiberSubscription<T> extends CreateFiberSubscription<T> {
-        private static final long serialVersionUID = -8552685969992500057L;
+        private static final long serialVersionUID = -6959205135542203083L;
 
-        ExecutorService scope;
+        Subscriber<? super T> downstream;
 
-        ExecutorCreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator, ExecutorService scope) {
-            super(downstream, generator);
-            this.scope = scope;
+        final FiberGenerator<T> generator;
+
+        final ResumableFiber consumerReady;
+
+        volatile boolean cancelled;
+
+        static final Throwable STOP = new Throwable("Downstream cancelled");
+
+        long produced;
+
+        ExecutorCreateFiberSubscription(Subscriber<? super T> downstream, FiberGenerator<T> generator) {
+            this.downstream = downstream;
+            this.generator = generator;
+            this.consumerReady = new ResumableFiber();
         }
 
         @Override
-        protected void cleanup() {
-            var e = scope;
-            scope = null;
-            if (e != null) {
-                e.close();
+        public Void call() {
+            try {
+                try {
+                    generator.generate(this);
+                } catch (Throwable ex) {
+                    if (ex != STOP && !cancelled) {
+                        downstream.onError(ex);
+                    }
+                    return null;
+                }
+                if (!cancelled) {
+                    downstream.onComplete();
+                }
+            } finally {
+                downstream = null;
             }
+            return null;
+        }
+
+        @Override
+        public void request(long n) {
+            BackpressureHelper.add(this, n);
+            consumerReady.resume();
+        }
+
+        @Override
+        public void cancel() {
+            cancelled = true;
+            request(1);
+        }
+
+        @Override
+        public void emit(T item) throws Throwable {
+            Objects.requireNonNull(item, "item is null");
+            var p = produced;
+            while (get() == p && !cancelled) {
+                consumerReady.await();
+            }
+
+            if (cancelled) {
+                throw STOP;
+            }
+
+            downstream.onNext(item);
+            produced = p + 1;
         }
     }
-
 }

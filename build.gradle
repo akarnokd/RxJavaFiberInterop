@@ -13,28 +13,32 @@ buildscript {
     dependencies {
         classpath "biz.aQute.bnd:biz.aQute.bnd.gradle:6.0.0"
         classpath 'com.vanniktech:gradle-maven-publish-plugin:0.18.0'
-        classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0"
+        classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.16.1"
     }
 }
 
 apply plugin: 'java'
-
 apply plugin: 'jacoco'
 jacoco {
-    toolVersion = "0.8.5"
+    toolVersion = "0.8.8-SNAPSHOT"
 }
 
 build.dependsOn jacocoTestReport
 
 check.dependsOn jacocoTestReport
 
-
-// Unfortunately, Gradle doesn't support running with JDK 13+ and Loom is a JDK 14 preview
-
 group = "com.github.akarnokd"
 
-sourceCompatibility = 11
-targetCompatibility = 11
+// Eclipse Buildship doesn't support higher targets when importing
+def targetVer = 16
+
+if (project.hasProperty("targetVer")) {
+   targetVer = project.targetVer;
+   logger.lifecycle("Overriding Target Version: " + project.targetVer)
+}
+
+sourceCompatibility = targetVer
+targetCompatibility = targetVer
 
 repositories {
     mavenCentral()
@@ -44,7 +48,6 @@ repositories {
 
 dependencies {
     implementation "io.reactivex.rxjava3:rxjava:3.1.2"
-    testImplementation 'junit:junit:4.13.2'
     testImplementation "org.reactivestreams:reactive-streams-tck:1.0.3"
     testImplementation "org.testng:testng:7.4.0"
     testImplementation "com.beust:jcommander:1.81"
@@ -81,7 +84,10 @@ if (System.getenv("CI") != null) {
 compileTestJava.options.forkOptions.executable = compileJava.options.forkOptions.executable
 def testExecutable = test.executable
 
-apply plugin: 'maven'
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-parameters"
+    options.compilerArgs << "--enable-preview"
+}
 
 apply plugin: 'biz.aQute.bnd.builder'
 
@@ -96,6 +102,8 @@ jar {
 apply plugin: "com.vanniktech.maven.publish"
 
 test {
+/*
+    jvmArgs "--enable-preview"
     maxHeapSize = "1g"
     testLogging  {
         events "started", "failed", "standard_error" // "skipped", "passed"
@@ -103,11 +111,31 @@ test {
         //    showStandardStreams = true
     }
     jacoco.includes = ["**akarnokd**"]
+    */
+    useTestNG()
+     executable = testExecutable
+     jvmArgs "--enable-preview"
+     jacoco.includes = ["**akarnokd**"]
+     testLogging  {
+        events=["skipped", "failed", "standard_error"]
+        exceptionFormat="full"
+
+        debug.events = ["skipped", "failed"]
+        debug.exceptionFormat="full"
+
+        info.events = ["failed", "skipped"]
+        info.exceptionFormat="full"
+        
+        warn.events = ["failed", "skipped"]
+        warn.exceptionFormat="full"
+     }
 }
 
+/*
 task testng(type: Test) { 
      useTestNG()
      executable = testExecutable
+     jvmArgs "--enable-preview"
      jacoco.includes = ["**akarnokd**"]
      testLogging  {
         events=["skipped", "failed", "standard_error"]
@@ -123,20 +151,20 @@ task testng(type: Test) {
         warn.exceptionFormat="full"
      }
 } 
-
+*/
 
 jacocoTestReport {
     reports {
         xml.enabled = true
         html.enabled = true
     }
-    executionData testng
+    //executionData testng
 }
 
-check.dependsOn testng
+//check.dependsOn testng
 
 jacocoTestReport.dependsOn test
-jacocoTestReport.dependsOn testng
+//jacocoTestReport.dependsOn testng
 
 apply plugin: "com.github.hierynomus.license"
 

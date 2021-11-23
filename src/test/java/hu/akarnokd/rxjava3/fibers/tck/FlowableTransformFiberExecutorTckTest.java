@@ -76,7 +76,7 @@ public class FlowableTransformFiberExecutorTckTest extends BaseTck<Long> {
             log.offer("Tansform before emit: " + v);
             emitter.emit(v);
             log.offer("Tansform after emit: " + v);
-        }))
+        }, service))
         .doOnRequest(v -> log.offer("Test requested: " + v))
         .doOnNext(v -> log.offer("Test received: " + v))
         .test()

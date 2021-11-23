@@ -21,10 +21,9 @@ import static org.testng.Assert.assertTrue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.testng.annotations.*;
+import org.testng.annotations.Test;
 
 import io.reactivex.rxjava3.functions.Consumer;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 @Test
 public class FiberInteropTest {
@@ -36,22 +35,14 @@ public class FiberInteropTest {
 
     @Test
     public void checkIsInsideFiber() {
-        FiberInterop.create(emitter -> {
-            emitter.emit(Thread.currentThread().isVirtual());
-        })
-        .test()
-        .awaitDone(5, TimeUnit.SECONDS)
-        .assertResult(true);
-    }
-
-    @org.junit.Test
-    public void checkIsInsideFiberJunit() {
-        FiberInterop.create(emitter -> {
-            emitter.emit(Thread.currentThread().isVirtual());
-        })
-        .test()
-        .awaitDone(5, TimeUnit.SECONDS)
-        .assertResult(true);
+        try (var scope = Executors.newVirtualThreadPerTaskExecutor()) {
+            FiberInterop.create(emitter -> {
+                emitter.emit(Thread.currentThread().isVirtual());
+            }, scope)
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS)
+            .assertResult(true);
+        }
     }
 
     @Test
@@ -62,71 +53,17 @@ public class FiberInteropTest {
             }, exec)
             .test()
             .awaitDone(5, TimeUnit.SECONDS)
-            .assertResult(true);
+            .assertResult(false);
+
+            exec.shutdown();
         }
-    }
-
-    @org.junit.Test
-    public void checkIsInsideFiberJunitExec() throws Throwable {
-        try (var exec = Executors.newSingleThreadExecutor()) {
-            FiberInterop.create(emitter -> {
-                emitter.emit(Thread.currentThread().isVirtual());
-            }, exec)
-            .test()
-            .awaitDone(5, TimeUnit.SECONDS)
-            .assertResult(true);
-        }
-    }
-
-    @Test
-    public void virtualParent() {
-        var result = new AtomicReference<Boolean>();
-        try (var exec = Executors.newSingleThreadExecutor()) {
-            try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(exec).factory())) {
-                scope.submit(() -> result.set(Thread.currentThread().isVirtual()));
-            }
-        }
-
-        assertTrue(result.get());
-    }
-
-    @Test
-    public void virtualParentScheduler() {
-        var worker = Schedulers.computation().createWorker();
-        try {
-            var result = new AtomicReference<Boolean>();
-            try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(worker::schedule).factory())) {
-                scope.submit(() -> result.set(Thread.currentThread().isVirtual()));
-            }
-
-            assertTrue(result.get());
-        } finally {
-            worker.dispose();
-        }
-    }
-
-    @Test
-    @Ignore("This hangs for some reason, probably the Loom preview limitation")
-    public void nestedVirtual() {
-        var result = new AtomicReference<Boolean>();
-        try (var exec = Executors.newSingleThreadExecutor()) {
-            try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(exec).factory())) {
-                try (var scope2  = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(scope).factory())) {
-                    scope2.submit(() -> result.set(Thread.currentThread().isVirtual()));
-                }
-            }
-        }
-
-        assertTrue(result.get());
     }
 
     @Test
     public void plainVirtual() {
         var result = new AtomicReference<Boolean>();
-        try (var exec = Executors.newSingleThreadExecutor()) {
-            try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(exec).factory())) {
-                scope.submit(() -> result.set(Thread.currentThread().isVirtual()));
-            }
+        try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory())) {
+            scope.submit(() -> result.set(Thread.currentThread().isVirtual()));
         }
 
         assertTrue(result.get());
@@ -134,12 +71,6 @@ public class FiberInteropTest {
 
     static void withVirtual(Consumer<ExecutorService> call) throws Throwable {
         try (var exec = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory())) {
-            call.accept(exec);
-        }
-    }
-
-    static void withVirtual(Executor parent, Consumer<ExecutorService> call) throws Throwable {
-        try (var exec = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().scheduler(parent).factory())) {
             call.accept(exec);
         }
     }

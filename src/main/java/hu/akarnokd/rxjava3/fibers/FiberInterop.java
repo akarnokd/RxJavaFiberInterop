@@ -35,39 +35,10 @@ public final class FiberInterop {
         throw new IllegalStateException("No instances!");
     }
 
-    public static <T> Flowable<T> create(FiberGenerator<T> generator) {
-        return create(generator, ForkJoinPool.commonPool());
-    }
-
-    public static <T> Flowable<T> create(FiberGenerator<T> generator, Scheduler scheduler) {
-        Objects.requireNonNull(generator, "generator is null");
-        Objects.requireNonNull(scheduler, "scheduler is null");
-        return RxJavaPlugins.onAssembly(new FlowableCreateFiberScheduler<>(generator, scheduler));
-    }
-
     public static <T> Flowable<T> create(FiberGenerator<T> generator, ExecutorService executor) {
         Objects.requireNonNull(generator, "generator is null");
         Objects.requireNonNull(executor, "executor is null");
         return RxJavaPlugins.onAssembly(new FlowableCreateFiberExecutor<>(generator, executor));
-    }
-
-    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, Scheduler scheduler) {
-        return transform(transformer, scheduler, Flowable.bufferSize());
-    }
-
-    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, Scheduler scheduler, int prefetch) {
-        Objects.requireNonNull(transformer, "transformer is null");
-        Objects.requireNonNull(scheduler, "scheduler is null");
-        ObjectHelper.verifyPositive(prefetch, "prefetch");
-        return new FlowableTransformFiberScheduler<>(null, transformer, scheduler, prefetch);
-    }
-
-    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer) {
-        return transform(transformer, ForkJoinPool.commonPool(), Flowable.bufferSize());
-    }
-
-    public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, int prefetch) {
-        return transform(transformer, ForkJoinPool.commonPool(), prefetch);
     }
 
     public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, ExecutorService scheduler) {

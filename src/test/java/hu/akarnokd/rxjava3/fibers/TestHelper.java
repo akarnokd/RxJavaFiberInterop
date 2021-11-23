@@ -16,7 +16,7 @@
 
 package hu.akarnokd.rxjava3.fibers;
 
-import static org.junit.Assert.*;
+import static org.testng.Assert.*;
 
 import java.lang.reflect.*;
 import java.util.*;

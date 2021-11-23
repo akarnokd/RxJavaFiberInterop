@@ -16,7 +16,7 @@
 
 package hu.akarnokd.rxjava3.fibers;
 
-import static org.junit.Assert.*;
+import static org.testng.Assert.*;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;

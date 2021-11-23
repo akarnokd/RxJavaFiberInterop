@@ -56,7 +56,7 @@ public abstract class BaseTck<T> extends PublisherVerification<T> {
 
     @BeforeClass
     public static void before() {
-        service = Executors.newCachedThreadPool();
+        service = Executors.newVirtualThreadPerTaskExecutor();
     }
 
     @AfterClass

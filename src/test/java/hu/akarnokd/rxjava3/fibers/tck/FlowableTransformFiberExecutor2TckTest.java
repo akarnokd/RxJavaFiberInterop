@@ -17,7 +17,7 @@
 package hu.akarnokd.rxjava3.fibers.tck;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import org.reactivestreams.Publisher;
 import org.testng.annotations.Test;
@@ -61,7 +61,7 @@ public class FlowableTransformFiberExecutor2TckTest extends BaseTck<Long> {
         })
         .compose(FiberInterop.transform((v, emitter) -> {
             emitter.emit(v);
-        }, 2))
+        }, service, 2))
         .test()
         .awaitDone(5, TimeUnit.SECONDS)
         .assertResult(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
