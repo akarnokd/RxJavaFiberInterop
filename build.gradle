@@ -20,7 +20,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'jacoco'
 jacoco {
-    toolVersion = "0.8.8-SNAPSHOT"
+    toolVersion = "0.8.8"
 }
 
 build.dependsOn jacocoTestReport
@@ -30,7 +30,7 @@ check.dependsOn jacocoTestReport
 group = "com.github.akarnokd"
 
 // Eclipse Buildship doesn't support higher targets when importing
-def targetVer = 16
+def targetVer = 19
 
 if (project.hasProperty("targetVer")) {
    targetVer = project.targetVer;
