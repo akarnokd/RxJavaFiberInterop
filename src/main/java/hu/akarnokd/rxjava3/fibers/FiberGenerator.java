@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 David Karnok
+ * Copyright 2019-Present David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,21 @@
 
 package hu.akarnokd.rxjava3.fibers;
 
+/**
+ * Interface to implement to produce elements when asked by
+ * {@link FiberInterop#create(FiberGenerator, java.util.concurrent.ExecutorService)}.
+ * <p>
+ * To signal {@code onComplete}, return normally from {@link #generate(FiberEmitter)}.
+ * To signal {@code onError}, throw any exception from {@link #generate(FiberEmitter)}.
+ * @param <T> the element type generated
+ */
 @FunctionalInterface
 public interface FiberGenerator<T> {
 
+    /**
+     * The method to implement and start emitting items.
+     * @param emitter use {@link FiberEmitter#emit(Object)} to generate values
+     * @throws Throwable if the generator wishes to signal {@code onError}.
+     */
     void generate(FiberEmitter<T> emitter) throws Throwable;
 }

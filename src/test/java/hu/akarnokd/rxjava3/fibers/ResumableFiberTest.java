@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 David Karnok
+ * Copyright 2019-Present David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ public class ResumableFiberTest {
     }
 
     @Test(timeOut = 30000)
+    @SuppressWarnings("preview")
     public void pingPong() throws Exception {
         try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory())) {
 

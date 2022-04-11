@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 David Karnok
+ * Copyright 2019-Present David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.concurrent.locks.LockSupport;
 
 /**
  * Fundamental primitive for suspending and resuming a Thread.
+ * @since 0.0.1
  */
 public class ResumableFiber extends AtomicReference<Object> {
 
@@ -46,7 +47,7 @@ public class ResumableFiber extends AtomicReference<Object> {
             }
 
             if (current != null && current != toUnpark) {
-                throw new IllegalStateException("Only one Thread/Fiber can await this ResumableFiber!");
+                throw new IllegalStateException("Only one (Virtual)Thread can await this ResumableFiber!");
             }
 
             if (compareAndSet(null, toUnpark)) {

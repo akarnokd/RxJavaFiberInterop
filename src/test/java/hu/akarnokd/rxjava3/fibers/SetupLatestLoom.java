@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 David Karnok
+ * Copyright 2019-Present David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public final class SetupLatestLoom {
                 int k = s.indexOf("\"", i + 10);
                 url = s.substring(i, k);
 
-                if (url.endsWith(".tar.gz") && url.contains("linux")) {
+                if (url.endsWith(".tar.gz") && url.contains("linux-x64")) {
                     break;
                 }
                 url = "";

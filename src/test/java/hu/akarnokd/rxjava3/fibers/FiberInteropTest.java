@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 David Karnok
+ * Copyright 2019-Present David Karnok
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ public class FiberInteropTest {
     }
 
     @Test
+    @SuppressWarnings("preview")
     public void checkIsInsideFiber() {
         try (var scope = Executors.newVirtualThreadPerTaskExecutor()) {
             FiberInterop.create(emitter -> {
@@ -46,6 +47,7 @@ public class FiberInteropTest {
     }
 
     @Test
+    @SuppressWarnings("preview")
     public void checkIsInsideFiberExec() throws Throwable {
         try (var exec = Executors.newSingleThreadExecutor()) {
             FiberInterop.create(emitter -> {
@@ -60,6 +62,7 @@ public class FiberInteropTest {
     }
 
     @Test
+    @SuppressWarnings("preview")
     public void plainVirtual() {
         var result = new AtomicReference<Boolean>();
         try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory())) {
@@ -69,6 +72,7 @@ public class FiberInteropTest {
         assertTrue(result.get());
     }
 
+    @SuppressWarnings("preview")
     static void withVirtual(Consumer<ExecutorService> call) throws Throwable {
         try (var exec = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory())) {
             call.accept(exec);
