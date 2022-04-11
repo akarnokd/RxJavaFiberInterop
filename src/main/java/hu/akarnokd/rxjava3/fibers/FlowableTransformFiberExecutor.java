@@ -155,6 +155,7 @@ implements FlowableTransformer<T, R> {
         @Override
         public void cancel() {
             cancelled = true;
+            upstream.cancel();
             // cleanup(); don't kill the worker
 
             producerReady.resume();
