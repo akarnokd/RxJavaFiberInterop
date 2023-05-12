@@ -70,7 +70,6 @@ public final class FiberInterop {
      */
     @BackpressureSupport(BackpressureKind.FULL)
     @SchedulerSupport(SchedulerSupport.CUSTOM)
-    @SuppressWarnings("preview")
     public static <T> Flowable<T> create(FiberGenerator<T> generator, ExecutorService executor) {
         Objects.requireNonNull(generator, "generator is null");
         Objects.requireNonNull(executor, "executor is null");
@@ -93,7 +92,6 @@ public final class FiberInterop {
      */
     @BackpressureSupport(BackpressureKind.FULL)
     @SchedulerSupport(SchedulerSupport.CUSTOM)
-    @SuppressWarnings("preview")
     public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, ExecutorService executor) {
         return transform(transformer, executor, Flowable.bufferSize());
     }
@@ -115,7 +113,6 @@ public final class FiberInterop {
      */
     @BackpressureSupport(BackpressureKind.FULL)
     @SchedulerSupport(SchedulerSupport.CUSTOM)
-    @SuppressWarnings("preview")
     public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, ExecutorService executor, int prefetch) {
         Objects.requireNonNull(transformer, "transformer is null");
         Objects.requireNonNull(executor, "executor is null");

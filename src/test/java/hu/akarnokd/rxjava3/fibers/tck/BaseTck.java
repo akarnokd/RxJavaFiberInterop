@@ -55,7 +55,6 @@ public abstract class BaseTck<T> extends PublisherVerification<T> {
     protected static ExecutorService service;
 
     @BeforeClass
-    @SuppressWarnings("preview")
     public static void before() {
         service = Executors.newVirtualThreadPerTaskExecutor();
     }

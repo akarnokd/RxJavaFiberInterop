@@ -34,7 +34,6 @@ public class FiberInteropTest {
     }
 
     @Test
-    @SuppressWarnings("preview")
     public void checkIsInsideFiber() {
         try (var scope = Executors.newVirtualThreadPerTaskExecutor()) {
             FiberInterop.create(emitter -> {
@@ -47,7 +46,6 @@ public class FiberInteropTest {
     }
 
     @Test
-    @SuppressWarnings("preview")
     public void checkIsInsideFiberExec() throws Throwable {
         try (var exec = Executors.newSingleThreadExecutor()) {
             FiberInterop.create(emitter -> {
@@ -62,7 +60,6 @@ public class FiberInteropTest {
     }
 
     @Test
-    @SuppressWarnings("preview")
     public void plainVirtual() {
         var result = new AtomicReference<Boolean>();
         try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory())) {
@@ -72,7 +69,6 @@ public class FiberInteropTest {
         assertTrue(result.get());
     }
 
-    @SuppressWarnings("preview")
     static void withVirtual(Consumer<ExecutorService> call) throws Throwable {
         try (var exec = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory())) {
             call.accept(exec);

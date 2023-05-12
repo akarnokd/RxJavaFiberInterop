@@ -66,7 +66,6 @@ public class ResumableFiberTest {
     }
 
     @Test(timeOut = 30000)
-    @SuppressWarnings("preview")
     public void pingPong() throws Exception {
         try (var scope = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().factory())) {
 

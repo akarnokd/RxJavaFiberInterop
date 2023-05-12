@@ -17,7 +17,7 @@
 package hu.akarnokd.rxjava3.fibers;
 
 import java.io.ByteArrayOutputStream;
-import java.net.URL;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.List;
@@ -29,7 +29,7 @@ public final class SetupLatestLoom {
     }
 
     public static void main(String[] args) throws Exception {
-        URL u = new URL("https://jdk.java.net/loom/");
+        URL u = new URI("https://jdk.java.net/loom/").toURL();
 
         ByteArrayOutputStream bout = new ByteArrayOutputStream(4096);
 

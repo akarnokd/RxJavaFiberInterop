@@ -35,7 +35,6 @@ public class FlowableTransformFiberExecutorTest {
     }
 
     @Test
-    @SuppressWarnings("preview")
     public void checkIsInsideFiber() {
         try (var scope = Executors.newVirtualThreadPerTaskExecutor()) {
             var cancelled = new AtomicBoolean();
