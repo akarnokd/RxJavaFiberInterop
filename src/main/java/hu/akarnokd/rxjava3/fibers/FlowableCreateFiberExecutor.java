@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.*;
 
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.internal.util.BackpressureHelper;
 
 /**
  * Runs a generator callback on a Fiber backed by a Worker of the given scheduler
@@ -94,7 +93,7 @@ final class FlowableCreateFiberExecutor<T> extends Flowable<T> {
 
         @Override
         public void request(long n) {
-            BackpressureHelper.add(this, n);
+            Helpers.add(this, n);
             consumerReady.resume();
         }
 

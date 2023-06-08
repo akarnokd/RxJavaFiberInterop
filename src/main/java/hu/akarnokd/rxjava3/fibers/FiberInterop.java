@@ -19,11 +19,8 @@ package hu.akarnokd.rxjava3.fibers;
 import java.util.Objects;
 import java.util.concurrent.*;
 
-import io.reactivex.rxjava3.annotations.BackpressureKind;
-import io.reactivex.rxjava3.annotations.BackpressureSupport;
-import io.reactivex.rxjava3.annotations.SchedulerSupport;
+import io.reactivex.rxjava3.annotations.*;
 import io.reactivex.rxjava3.core.*;
-import io.reactivex.rxjava3.internal.functions.ObjectHelper;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 
 /**
@@ -116,7 +113,7 @@ public final class FiberInterop {
     public static <T, R> FlowableTransformer<T, R> transform(FiberTransformer<T, R> transformer, ExecutorService executor, int prefetch) {
         Objects.requireNonNull(transformer, "transformer is null");
         Objects.requireNonNull(executor, "executor is null");
-        ObjectHelper.verifyPositive(prefetch, "prefetch");
+        Helpers.verifyPositive(prefetch, "prefetch");
         return new FlowableTransformFiberExecutor<>(null, transformer, executor, prefetch);
     }
 }

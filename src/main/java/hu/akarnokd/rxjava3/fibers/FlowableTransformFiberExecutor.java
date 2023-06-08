@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.*;
 
 import io.reactivex.rxjava3.core.*;
-import io.reactivex.rxjava3.internal.util.BackpressureHelper;
 import io.reactivex.rxjava3.operators.SpscArrayQueue;
 
 final class FlowableTransformFiberExecutor<T, R> extends Flowable<R>
@@ -148,7 +147,7 @@ implements FlowableTransformer<T, R> {
 
         @Override
         public void request(long n) {
-            BackpressureHelper.add(requested, n);
+            Helpers.add(requested, n);
             consumerReady.resume();
         }
 

@@ -1,29 +1,30 @@
-version '1.0-SNAPSHOT'
-
-buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-        maven {
-            url "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
-    }
-    dependencies {
-        classpath "biz.aQute.bnd:biz.aQute.bnd.gradle:6.4.0"
-        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.18.0'
-        classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.16.1"
-    }
+plugins {
+    id("java-library")
+    id("checkstyle")
+    id("eclipse")
+    id("jacoco")
+    id("maven-publish")
+    id("ru.vyarus.animalsniffer") version "1.7.0"
+    id("me.champeau.gradle.jmh") version "0.5.3"
+    id("com.github.hierynomus.license") version "0.16.1"
+    id("biz.aQute.bnd.builder") version "6.4.0"
+    id("com.vanniktech.maven.publish") version "0.19.0"
+    // id("org.beryx.jar") version "2.0.0"
 }
 
-apply plugin: 'java'
-apply plugin: 'jacoco'
 jacoco {
     toolVersion = "0.8.8"
 }
 
 build.dependsOn jacocoTestReport
+
+checkstyle {
+    configFile = project.file("config/checkstyle/checkstyle.xml")
+    configProperties = [
+            "checkstyle.suppressions.file": project.file("config/checkstyle/suppressions.xml"),
+            "checkstyle.header.file"      : project.file("config/license/HEADER_JAVA")
+    ]
+}
 
 check.dependsOn jacocoTestReport
 
@@ -42,8 +43,6 @@ targetCompatibility = targetVer
 
 repositories {
     mavenCentral()
-    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-    maven { url 'https://oss.jfrog.org/libs-snapshot' }
 }
 
 dependencies {
@@ -89,29 +88,36 @@ tasks.withType(JavaCompile) {
     // options.compilerArgs << "--enable-preview"
 }
 
-apply plugin: 'biz.aQute.bnd.builder'
+/*
+moduleConfig {
+    moduleInfoPath = 'src/main/module/module-info.java'
+    multiReleaseVersion = 21
+    version = project.version
+}
+*/
 
 jar {
-    bnd ('Bundle-Name': 'rxjava-fiber-interop',
+    from('.') {
+        include 'LICENSE'
+        include 'COPYRIGHT'
+        into('META-INF/')
+    }
+
+    // Cover for bnd still not supporting MR Jars: https://github.com/bndtools/bnd/issues/2227
+    bnd('-fixupmessages': '^Classes found in the wrong directory: \\\\{META-INF/versions/9/module-info\\\\.class=module-info}$')
+    bnd (
+            'Bundle-Name': 'rxjava-fiber-interop',
             'Bundle-Vendor': 'akarnokd',
             'Bundle-Description': 'Library to interoperate between RxJava 3 and Fibers',
-            'Import-Package': '!org.junit,!junit.framework,!org.mockito.*,*',
-            'Bundle-DocURL': 'https://github.com/akarnokd/RxJavaFiberInterop')
+            'Import-Package': '!org.junit,!junit.framework,!org.mockito.*,!org.testng.*,*',
+            'Bundle-DocURL': 'https://github.com/akarnokd/RxJavaFiberInterop',
+            "Bundle-SymbolicName": "hu.akarnokd.rxjava3.fibers",
+            "Export-Package": "hu.akarnokd.rxjava3.fibers.*",
+            "Multi-Release": "true"
+    )
 }
 
-apply plugin: "com.vanniktech.maven.publish"
-
 test {
-/*
-    jvmArgs "--enable-preview"
-    maxHeapSize = "1g"
-    testLogging  {
-        events "started", "failed", "standard_error" // "skipped", "passed"
-        exceptionFormat="full"
-        //    showStandardStreams = true
-    }
-    jacoco.includes = ["**akarnokd**"]
-    */
     useTestNG()
      executable = testExecutable
      jvmArgs "--enable-preview"
@@ -131,42 +137,15 @@ test {
      }
 }
 
-/*
-task testng(type: Test) { 
-     useTestNG()
-     executable = testExecutable
-     jvmArgs "--enable-preview"
-     jacoco.includes = ["**akarnokd**"]
-     testLogging  {
-        events=["skipped", "failed", "standard_error"]
-        exceptionFormat="full"
-
-        debug.events = ["skipped", "failed"]
-        debug.exceptionFormat="full"
-
-        info.events = ["failed", "skipped"]
-        info.exceptionFormat="full"
-        
-        warn.events = ["failed", "skipped"]
-        warn.exceptionFormat="full"
-     }
-} 
-*/
-
 jacocoTestReport {
     reports {
         xml.enabled = true
         html.enabled = true
     }
-    //executionData testng
 }
 
-//check.dependsOn testng
 
 jacocoTestReport.dependsOn test
-//jacocoTestReport.dependsOn testng
-
-apply plugin: "com.github.hierynomus.license"
 
 license {
     header rootProject.file('HEADER')

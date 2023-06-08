@@ -1,6 +1,6 @@
 # RxJavaFiberInterop
 
-Library for interoperation between RxJava 3 and JDK 21's Virtual Threads (Project Loom).
+Library for interoperation between RxJava 3 and JDK 21's Virtual Threads (aka Fibers, Project Loom).
 
 <a href='https://github.com/akarnokd/RxJavaFiberInterop/actions?query=workflow%3A%22Java+CI+with+Gradle%22'><img src='https://github.com/akarnokd/RxJavaFiberInterop/workflows/Java%20CI%20with%20Gradle/badge.svg'></a>
 [![codecov.io](http://codecov.io/github/akarnokd/RxJavaFiberInterop/coverage.svg?branch=master)](http://codecov.io/github/akarnokd/RxJavaFiberInterop?branch=master)
