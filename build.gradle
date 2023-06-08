@@ -59,8 +59,8 @@ compileTestJava.options.fork = true
 def loomDir = System.getenv("LOOM_JDK")
 if (System.getenv("CI") != null) {
     println("Overriding JDK on CI");
-    compileJava.options.forkOptions.executable = "./" + loomDir + "/bin/javac"
-    javadoc.executable = "./" +loomDir + "/bin/javadoc"
+    compileJava.options.forkOptions.executable = project.file(".").absolutePath + "/" + loomDir + "/bin/javac"
+    javadoc.executable = project.file(".").absolutePath + "/" + loomDir + "/bin/javadoc"
     test.executable = project.file(".").absolutePath + "/" + loomDir + "/bin/java"
     println(test.executable)
 } else {
@@ -86,7 +86,7 @@ def testExecutable = test.executable
 
 tasks.withType(JavaCompile) {
     options.compilerArgs << "-parameters"
-    options.compilerArgs << "--enable-preview"
+    // options.compilerArgs << "--enable-preview"
 }
 
 apply plugin: 'biz.aQute.bnd.builder'
