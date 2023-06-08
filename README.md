@@ -9,7 +9,7 @@ Library for interoperation between RxJava 3 and JDK 21's Virtual Threads (aka Fi
 ```groovy
 
 dependencies {
-    implementation "com.github.akarnokd:rxjava3-fiber-interop:0.0.17"
+    implementation "com.github.akarnokd:rxjava3-fiber-interop:0.0.18"
 }
 ```
 
