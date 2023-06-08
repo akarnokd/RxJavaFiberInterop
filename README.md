@@ -8,11 +8,11 @@ Library for interoperation between RxJava 3 and Project Loom's Fibers.
 ```groovy
 
 dependencies {
-    implementation "com.github.akarnokd:rxjava3-fiber-interop:0.0.16"
+    implementation "com.github.akarnokd:rxjava3-fiber-interop:0.0.17"
 }
 ```
 
-Always requires the latest Loom build from https://jdk.java.net/loom/
+Always requires the latest Loom build from [https://jdk.java.net/loom/](https://jdk.java.net/21/)
 
 *Note that Loom is in early access and the API, naming and usage keeps changing, a lot.*
 
