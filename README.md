@@ -35,7 +35,7 @@ vte.close();
 
 You can then use `vtScheduler` from the example with `subscribeOn` and `observeOn` to let traditional functional callbacks to block virtually:
 
-```
+```java
 Observable.fromCallable(() -> someBlockingNetworkCall())
 .subscribeOn(vtScheduler)
 .observeOn(vtScheduler)
